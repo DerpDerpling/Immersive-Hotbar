@@ -3,7 +3,8 @@
   "package": "derp.animatedhotbar.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "GrowItemMixin"
+    "GrowItemMixin",
+    "ItemUseAnimationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
