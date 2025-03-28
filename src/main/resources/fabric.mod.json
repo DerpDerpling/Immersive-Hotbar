@@ -3,17 +3,17 @@
 	"id": "animated-hotbar",
 	"version": "${version}",
 	"name": "Animated Hotbar",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "Adds item animations to the hotbar!",
 	"authors": [
-		"Me!"
+		"DerpDerpling"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/animated-hotbar/icon.png",
-	"environment": "*",
+	"environment": "client",
 	"entrypoints": {
 		"main": [
 			"derp.animatedhotbar.AnimatedHotbar"
@@ -34,7 +34,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.16.10",
-		"minecraft": "~1.21.1",
+		"minecraft": ">=1.21-",
 		"java": ">=21",
 		"fabric-api": "*"
 	},
