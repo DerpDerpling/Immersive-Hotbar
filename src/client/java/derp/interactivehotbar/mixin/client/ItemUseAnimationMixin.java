@@ -1,10 +1,9 @@
-package derp.animatedhotbar.mixin.client;
+package derp.interactivehotbar.mixin.client;
 
-import derp.animatedhotbar.InGameHudAnimationHandler;
+import derp.interactivehotbar.InGameHudAnimationHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -33,6 +32,6 @@ public abstract class ItemUseAnimationMixin {
         if (client.player == null || client.inGameHud == null) return;
 
         int slotIndex = client.player.getInventory().selectedSlot;
-        ((InGameHudAnimationHandler) client.inGameHud).animated_hotbar$triggerSlotAnimation(slotIndex);
+        ((InGameHudAnimationHandler) client.inGameHud).interactive_hotbar$triggerSlotAnimation(slotIndex);
     }
 }

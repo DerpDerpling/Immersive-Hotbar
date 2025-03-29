@@ -1,11 +1,11 @@
-package derp.animatedhotbar;
+package derp.interactivehotbar;
 
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class AnimatedHotbar implements ModInitializer {
+public class InteractiveHotbar implements ModInitializer {
 	public static final String MOD_ID = "animated-hotbar";
 
 	// This logger is used to write text to the console and the log file.

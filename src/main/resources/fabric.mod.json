@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
-	"id": "animated-hotbar",
+	"id": "interactive-hotbar",
 	"version": "${version}",
-	"name": "Animated Hotbar",
-	"description": "Adds item animations to the hotbar!",
+	"name": "Interactive Hotbar",
+	"description": "Adds animations to the hotbar that make it more interactive.",
 	"authors": [
 		"DerpDerpling"
 	],
@@ -12,23 +12,23 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "MIT",
-	"icon": "assets/animated-hotbar/icon.png",
+	"icon": "assets/interactive-hotbar/icon.png",
 	"environment": "client",
 	"entrypoints": {
 		"main": [
-			"derp.animatedhotbar.AnimatedHotbar"
+			"derp.interactivehotbar.InteractiveHotbar"
 		],
 		"client": [
-			"derp.animatedhotbar.AnimatedHotbarClient"
+			"derp.interactivehotbar.InteractiveHotbarClient"
 		],
 		"fabric-datagen": [
-			"derp.animatedhotbar.AnimatedHotbarDataGenerator"
+			"derp.interactivehotbar.InteractiveHotbarDataGenerator"
 		]
 	},
 	"mixins": [
-		"animated-hotbar.mixins.json",
+		"interactive-hotbar.mixins.json",
 		{
-			"config": "animated-hotbar.client.mixins.json",
+			"config": "interactive-hotbar.client.mixins.json",
 			"environment": "client"
 		}
 	],

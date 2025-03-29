@@ -1,0 +1,12 @@
+{
+  "TODO": "finish this file",
+  "interactive-hotbar.midnightconfig.title":"Interactive Hotbar Config",
+  "interactive-hotbar.midnightconfig.category.main":"Interactive Hotbar",
+  "interactive-hotbar.midnightconfig.enum.ToolAnimates.ENABLED":"Enabled",
+  "interactive-hotbar.midnightconfig.enum.ToolAnimates.DISABLED":"Disabled",
+  "interactive-hotbar.midnightconfig.enum.WeaponAnimates.ENABLED":"Enabled",
+  "interactive-hotbar.midnightconfig.enum.WeaponAnimates.DISABLED":"Disabled",
+  "interactive-hotbar.midnightconfig.enum.ShouldItemGrowWhenSelected.ENABLED":"Enabled",
+  "interactive-hotbar.midnightconfig.enum.ShouldItemGrowWhenSelected.DISABLED":"Disabled"
+
+}

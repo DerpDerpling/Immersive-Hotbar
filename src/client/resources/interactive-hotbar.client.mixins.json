@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "derp.animatedhotbar.mixin.client",
+  "package": "derp.interactivehotbar.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
     "GrowItemMixin",
