@@ -1,9 +1,11 @@
-package derp.interactivehotbar.mixin.client;
+package derp.immersivehotbar.mixin.client;
 
-import derp.interactivehotbar.InGameHudAnimationHandler;
+import derp.immersivehotbar.InGameHudAnimationHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -22,16 +24,20 @@ public abstract class ItemUseAnimationMixin {
 
     @Inject(method = "interactBlock", at = @At("RETURN"))
     private void onInteractBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
-        if (cir.getReturnValue().isAccepted()) {
-            triggerHotbarAnimation();
+        if (cir.getReturnValue().isAccepted() && player.isInCreativeMode()) {
+            ItemStack stack = player.getStackInHand(hand);
+            if (stack.getItem() instanceof BlockItem) {
+                triggerHotbarAnimation();
+            }
         }
     }
-
     @Unique
     private void triggerHotbarAnimation() {
-        if (client.player == null || client.inGameHud == null) return;
+        assert client.player != null;
+        if (client.player.isInCreativeMode() && client.player == null || client.inGameHud == null) return;
+
 
         int slotIndex = client.player.getInventory().selectedSlot;
-        ((InGameHudAnimationHandler) client.inGameHud).interactive_hotbar$triggerSlotAnimation(slotIndex);
+        ((InGameHudAnimationHandler) client.inGameHud).immersive_hotbar$triggerSlotAnimation(slotIndex);
     }
 }

@@ -1,10 +1,8 @@
 {
 	"required": true,
-	"package": "derp.interactivehotbar.mixin",
+	"package": "derp.immersivehotbar.mixin",
 	"compatibilityLevel": "JAVA_21",
-	"mixins": [
-		"ExampleMixin"
-	],
+	"mixins": [],
 	"injectors": {
 		"defaultRequire": 1
 	}
