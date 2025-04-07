@@ -10,7 +10,7 @@ public class ImmersiveHotbarConfig {
     public static float selectedItemSize = 1.2f;
 
     @SerialEntry
-    public static float bouncyStiffness = 0.1f;
+    public static float bouncyStiffness = 0.3f;
 
     @SerialEntry
     public static float bouncyDamping = 0.2f;
@@ -58,7 +58,7 @@ public class ImmersiveHotbarConfig {
     public static float nonSelectedItemSize = 1.0f;
 
     @SerialEntry
-    public static float shrinkAnimationSpeed = 1.0f;
+    public static float shrinkAnimationSpeed = 2.5f;
 
     @SerialEntry
     public static float animationSpeed = 0.1f;
