@@ -214,7 +214,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		context.getMatrices().scale(slotScales[slotIndex], slotScales[slotIndex], slotScales[slotIndex]);
 		context.getMatrices().translate(-centerX, -centerY, 0);
 		context.drawItem(player, lastSlotStacks[slotIndex], x, y, seed);
-		context.drawItemInSlot(this.client.textRenderer, lastSlotStacks[slotIndex], x, y);
+		context.drawStackOverlay(this.client.textRenderer, lastSlotStacks[slotIndex], x, y);
 		context.getMatrices().pop();
 
 		if (progress >= 1.0f) {
@@ -287,10 +287,10 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 			context.getMatrices().translate(centerX, centerY, 0);
 			context.getMatrices().scale(slotScales[slotIndex], slotScales[slotIndex], slotScales[slotIndex]);
 			context.getMatrices().translate(-centerX, -centerY, 0);
-			context.drawItemInSlot(this.client.textRenderer, stack, x, y);
+			context.drawStackOverlay(this.client.textRenderer, stack, x, y);
 		} else {
 			context.getMatrices().translate(0, 0, 200);
-			context.drawItemInSlot(this.client.textRenderer, stack, x, y);
+			context.drawStackOverlay(this.client.textRenderer, stack, x, y);
 		}
 		context.getMatrices().pop();
 	}

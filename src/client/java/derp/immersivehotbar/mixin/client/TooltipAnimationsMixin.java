@@ -117,7 +117,7 @@ public class TooltipAnimationsMixin {
             matrices.translate(-(x + lastTextWidth / 2.0f), -(y + 4), 0);
 
             context.drawTextWithBackground(client.textRenderer, lastTooltipText, x, y, lastTextWidth,
-                    ColorHelper.Argb.withAlpha(alpha, -1));
+                    ColorHelper.withAlpha(alpha, -1));
             matrices.pop();
         } else {
             tooltipScale += (0.0f - tooltipScale) * (10.0f * deltaSeconds);

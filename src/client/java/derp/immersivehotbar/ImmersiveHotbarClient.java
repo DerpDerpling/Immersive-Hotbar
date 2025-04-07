@@ -74,7 +74,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 		// tool break animation
 		ClientPlayerBlockBreakEvents.AFTER.register((world, player, pos, state) -> {
 			ItemStack stack = player.getMainHandStack();
-			if (stack.getItem() instanceof ToolItem && toolAnimates) {
+			if (stack.getItem() instanceof MiningToolItem && toolAnimates) {
 				int slot = player.getInventory().selectedSlot;
 				triggerShrink(slot);
 			}
