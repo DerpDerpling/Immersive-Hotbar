@@ -11,6 +11,7 @@ import net.minecraft.item.*;
 import java.util.Arrays;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
+import static derp.immersivehotbar.util.ItemChecker.isTool;
 import static derp.immersivehotbar.util.SlotAnimationState.*;
 
 public class ImmersiveHotbarClient implements ClientModInitializer {
@@ -37,7 +38,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 				Item item = lastUsedItem.getItem();
 
 				if (weaponAnimates && (item instanceof BowItem || item instanceof CrossbowItem)) {
-					int slot = client.player.getMainHandStack() == lastUsedItem ? client.player.getInventory().selectedSlot : 9;
+					int slot = client.player.getMainHandStack() == lastUsedItem ? client.player.getInventory().getSelectedSlot() : 9;
 					triggerShrink(slot);
 				}
 				lastUsedItem = ItemStack.EMPTY;
@@ -50,7 +51,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 			if (mainHandStack.getItem() instanceof CrossbowItem) {
 				boolean isCharged = CrossbowItem.isCharged(mainHandStack);
 				if (wasCrossbowChargedMainhand && !isCharged && weaponAnimates) {
-					int slot = client.player.getInventory().selectedSlot;
+					int slot = client.player.getInventory().getSelectedSlot();
 					triggerShrink(slot);
 				}
 				wasCrossbowChargedMainhand = isCharged;
@@ -74,8 +75,8 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 		// tool break animation
 		ClientPlayerBlockBreakEvents.AFTER.register((world, player, pos, state) -> {
 			ItemStack stack = player.getMainHandStack();
-			if (stack.getItem() instanceof MiningToolItem && toolAnimates) {
-				int slot = player.getInventory().selectedSlot;
+			if (isTool(stack) && toolAnimates) {
+				int slot = player.getInventory().getSelectedSlot();
 				triggerShrink(slot);
 			}
 		});

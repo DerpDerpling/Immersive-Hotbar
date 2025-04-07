@@ -22,7 +22,7 @@ public class AttackEntityMixin {
         if (weaponAnimates)
             if (player == null || target == null) return;
 
-        int slot = player.getInventory().selectedSlot;
+        int slot = player.getInventory().getSelectedSlot();
         SlotAnimationState.wasUsed[slot] = true;
         SlotAnimationState.slotScales[slot] = nonSelectedItemSize - 0.07f;
     }

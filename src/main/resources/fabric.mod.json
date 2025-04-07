@@ -10,7 +10,7 @@
 	"contact": {
 		"homepage": "https://modrinth.com/mod/immersive-hotbar",
 		"sources": "https://github.com/DerpDerpling/Interactive-Hotbar",
-		"issues": "https://github.com/DerpDerpling/Interactive-Hotbar"
+		"issues": "https://github.com/DerpDerpling/Interactive-Hotbar/issues"
 	},
 	"license": "MIT",
 	"icon": "assets/immersive-hotbar/icon.png",

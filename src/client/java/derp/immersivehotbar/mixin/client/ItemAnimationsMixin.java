@@ -79,7 +79,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		int slotIndex = currentHotbarSlot++;
 		int centerX = x + 8;
 		int centerY = y + 8;
-		boolean isSelected = (slotIndex == player.getInventory().selectedSlot);
+		boolean isSelected = (slotIndex == player.getInventory().getSelectedSlot());
 
 		if (shouldTriggerShrink(stack, slotIndex)) {
 			startShrinkAnimation(slotIndex);
