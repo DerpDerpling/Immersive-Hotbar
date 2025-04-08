@@ -4,8 +4,6 @@ import derp.immersivehotbar.util.SlotAnimationState;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,7 +22,8 @@ public class AttackEntityMixin {
 
         int slot = player.getInventory().getSelectedSlot();
         SlotAnimationState.wasUsed[slot] = true;
-        SlotAnimationState.slotScales[slot] = nonSelectedItemSize - 0.07f;
+        if(weaponAnimates)
+            SlotAnimationState.slotScales[slot] = nonSelectedItemSize - 0.07f;
     }
 
 
