@@ -37,10 +37,10 @@ public class ImmersiveHotbarConfig {
     public static boolean textScales = true;
 
     @SerialEntry
-    public static Color hotbarSelectionColor = new Color(255, 255, 255, 255);
+    public static Color hotbarSelectionColor = new Color(255, 255, 255, 127);
 
     @SerialEntry
-    public static boolean lowDurabilityGlow = true;
+    public static boolean lowDurabilityGlow = false;
 
     @SerialEntry
     public static boolean immersiveToolTip = true;

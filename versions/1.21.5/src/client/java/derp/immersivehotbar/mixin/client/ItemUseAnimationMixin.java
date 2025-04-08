@@ -27,17 +27,22 @@ public abstract class ItemUseAnimationMixin {
         if (cir.getReturnValue().isAccepted() && player.isInCreativeMode()) {
             ItemStack stack = player.getStackInHand(hand);
             if (stack.getItem() instanceof BlockItem) {
-                triggerHotbarAnimation();
+                triggerHotbarAnimation(hand);
             }
         }
     }
+
     @Unique
-    private void triggerHotbarAnimation() {
-        assert client.player != null;
-        if (client.player.isInCreativeMode() && client.player == null || client.inGameHud == null) return;
+    private void triggerHotbarAnimation(Hand hand) {
+        if (client.player == null || client.inGameHud == null) return;
 
+        int slotIndex;
+        if (hand == Hand.MAIN_HAND) {
+            slotIndex = client.player.getInventory().getSelectedSlot();
+        } else {
+            slotIndex = 9;
+        }
 
-        int slotIndex = client.player.getInventory().getSelectedSlot();
         ((InGameHudAnimationHandler) client.inGameHud).immersive_hotbar$triggerSlotAnimation(slotIndex);
     }
 }

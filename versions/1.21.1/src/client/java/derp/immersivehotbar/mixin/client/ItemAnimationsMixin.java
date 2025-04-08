@@ -289,11 +289,8 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 			context.getMatrices().translate(-centerX, -centerY, 0);
 			context.drawItemInSlot(this.client.textRenderer, stack, x, y);
 		} else {
-
 			context.getMatrices().translate(0, 0, 200);
-			//? if 1.21.2{ context.drawStackOverlay(this.client.textRenderer, stack, x, y);
 			context.drawItemInSlot(this.client.textRenderer, stack, x, y);
-		//?}
 		}
 		context.getMatrices().pop();
 	}
