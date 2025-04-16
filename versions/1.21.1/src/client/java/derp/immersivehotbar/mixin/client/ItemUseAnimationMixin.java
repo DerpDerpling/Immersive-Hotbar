@@ -1,7 +1,6 @@
 package derp.immersivehotbar.mixin.client;
 
 import derp.immersivehotbar.InGameHudAnimationHandler;
-import derp.immersivehotbar.util.InteractiveBlockChecker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -46,7 +45,7 @@ public abstract class ItemUseAnimationMixin {
                 }
             }
 
-            if ((isTool(stack) || isWeapon(stack)) && !InteractiveBlockChecker.isInteractive(player, hitResult)) {
+            if ((isTool(stack) || isWeapon(stack))) {
                 if (toolAnimates) {
                     triggerHotbarAnimation(hand);
                 }
