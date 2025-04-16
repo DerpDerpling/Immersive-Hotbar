@@ -33,6 +33,10 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 	private long lastRenderTime = System.nanoTime();
 	@Unique
 	private float deltaSeconds = 0f;
+	@Unique private ItemStack lastOffhandStack = ItemStack.EMPTY;
+	@Unique private int lastOffhandCount = 0;
+	@Unique private int lastOffhandDamage = 0;
+	@Unique private boolean suppressOffhandPickup = false;
 
 	public ItemAnimationsMixin(MinecraftClient client) {
 		this.client = client;
@@ -44,6 +48,11 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		if (slotIndex >= 0 && slotIndex < slotScales.length) {
 			slotScales[slotIndex] = nonSelectedItemSize - 0.1f;
 		}
+	}
+
+	@Unique
+	public void immersive_hotbar$triggerOffhandAnimation(int slotIndex) {
+		slotScales[slotIndex] = animationIntensity;
 	}
 
 	@Unique
@@ -64,6 +73,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 			Arrays.fill(slotVelocities, 0.0f);
 			Arrays.fill(shrinkProgress, 0.0f);
 			Arrays.fill(isShrinking, false);
+			Arrays.fill(previousStacks, ItemStack.EMPTY);
 			initialized = true;
 		}
 	}
@@ -104,7 +114,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		drawDurabilityGlow(stack, context, x, y);
 		drawSlotBackground(context, x, y, isSelected);
 		drawItemStack(context, player, stack, x, y, seed, centerX, centerY, slotIndex);
-
+		handleOffhandSlotAnimations();
 		ci.cancel();
 	}
 
@@ -122,28 +132,76 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 
 	@Unique
 	private void handleEmptySlot(int slotIndex) {
+		previousStacks[slotIndex] = ItemStack.EMPTY;
 		lastSlotStacks[slotIndex] = ItemStack.EMPTY;
 		lastSlotCounts[slotIndex] = 0;
 		slotScales[slotIndex] += (nonSelectedItemSize - slotScales[slotIndex]) * animationSpeed * deltaSeconds * 60f;
 	}
 
 	@Unique
+	private void handleOffhandSlotAnimations() {
+		assert client.player != null;
+		ItemStack offhandStack = client.player.getOffHandStack();
+
+		boolean isToolItem = isTool(offhandStack);
+		boolean isWeaponItem = isWeapon(offhandStack);
+		boolean shouldAnimate = (!isToolItem || toolAnimates) && (!isWeaponItem || weaponAnimates);
+
+		boolean changed = !ItemStack.areItemsEqual(offhandStack, lastOffhandStack) || !ItemStack.areItemsAndComponentsEqual(offhandStack, lastOffhandStack) || offhandStack.getCount() != lastOffhandCount;
+
+		boolean wasUsed = false;
+		if (durabilityAnimates && offhandStack.isDamageable()) {
+			int currentDamage = offhandStack.getDamage();
+			if (currentDamage > lastOffhandDamage && !wasUsed && shouldAnimate) {
+				immersive_hotbar$triggerOffhandAnimation(9);
+				suppressOffhandPickup = true;
+			}
+			lastOffhandDamage = currentDamage;
+		}
+
+		if (changed && !suppressOffhandPickup && shouldAnimate) {
+			immersive_hotbar$triggerOffhandAnimation(9);
+		}
+
+		lastOffhandStack = offhandStack.copy();
+		lastOffhandCount = offhandStack.getCount();
+		suppressOffhandPickup = false;
+	}
+
+	@Unique
 	private void handleItemChangeAnimations(ItemStack stack, int slotIndex) {
-		if (!stack.isDamageable() && stack.getCount() < lastSlotCounts[slotIndex]) {
+		boolean isToolItem = isTool(stack);
+		boolean isWeaponItem = isWeapon(stack);
+		boolean isDamageable = stack.isDamageable();
+		boolean shouldAnimate = (!isToolItem || toolAnimates) &&
+				(!isWeaponItem || weaponAnimates);
+
+		boolean wasEmpty = lastSlotStacks[slotIndex].isEmpty();
+		boolean itemChanged = !ItemStack.areItemsEqual(stack, lastSlotStacks[slotIndex]);
+		boolean countIncreased = stack.getCount() > lastSlotCounts[slotIndex];
+
+		if (!stack.isEmpty() && (wasEmpty || ((itemChanged || countIncreased) && !suppressNextPickup[slotIndex]))) {
+			slotScales[slotIndex] = animationIntensity;
+		}
+
+		if (durabilityAnimates && isDamageable) {
+			int currentDamage = stack.getDamage();
+			int lastDamage = lastSlotDamage[slotIndex];
+			if (currentDamage > lastDamage && !wasUsed[slotIndex] && shouldAnimate) {
+				slotScales[slotIndex] = nonSelectedItemSize - 0.1f;
+				suppressNextPickup[slotIndex] = true;
+			}
+			lastSlotDamage[slotIndex] = currentDamage;
+		}
+
+		if (!isDamageable && stack.getCount() < lastSlotCounts[slotIndex]) {
 			if (!wasUsed[slotIndex]) {
 				slotScales[slotIndex] = nonSelectedItemSize - 0.1f;
-				lastSlotCounts[slotIndex] = stack.getCount();
-				wasUsed[slotIndex] = false;
 				suppressNextPickup[slotIndex] = true;
 			}
 		}
 
-		boolean itemChanged = !ItemStack.areItemsEqual(stack, lastSlotStacks[slotIndex]);
-		boolean countIncreased = stack.getCount() > lastSlotCounts[slotIndex];
-
-		if ((itemChanged || countIncreased) && !suppressNextPickup[slotIndex]) {
-			slotScales[slotIndex] = animationIntensity;
-		}
+		previousStacks[slotIndex] = stack;
 	}
 
 	@Unique
@@ -157,9 +215,6 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 
 	@Unique
 	private void updateSelectorScales(int slotIndex) {
-		float target = (slotIndex == 9) ? 1.2f : 1.0f;
-		offhandSelectorScale += (target - offhandSelectorScale) * 0.3f * deltaSeconds * 60f;
-
 		float current = selectorScales[slotIndex];
 		selectorScales[slotIndex] += ((slotIndex == currentHotbarSlot - 1) ? 1.2f : 1.0f - current) * 0.3f * deltaSeconds * 60f;
 	}

@@ -22,6 +22,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ImmersiveHotbarConfigHandler.load();
+
 		ClientPlayConnectionEvents.DISCONNECT.register((client, world) -> Arrays.fill(lastSlotStacks, ItemStack.EMPTY));
 		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> TooltipAnimationState.reset());
 
@@ -90,7 +91,4 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 			slotScales[slot] = nonSelectedItemSize - 0.2f;
 		}
 	}
-
-
-
 }

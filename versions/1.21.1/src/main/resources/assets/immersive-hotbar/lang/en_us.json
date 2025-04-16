@@ -10,8 +10,8 @@
     "immersivehotbar.option.tooltip_animation": "Animated Tooltip",
     "immersivehotbar.option.tooltip_animation.desc": "If enabled, the item tooltip will animate when selecting items.",
 
-    "immersivehotbar.option.text_scaling": "Text Scaling",
-    "immersivehotbar.option.text_scaling.desc": "If disabled, text will not scale with the item.",
+    "immersivehotbar.option.text_scaling": "Text/Durability Bar Scaling",
+    "immersivehotbar.option.text_scaling.desc": "If disabled, text and durability bars will not scale with the item.",
 
     "immersivehotbar.option.selected_scale": "Selected Item Slot Scale",
     "immersivehotbar.option.selected_scale.desc": "How large the selected hotbar item appears.",
@@ -27,6 +27,9 @@
 
     "immersivehotbar.option.should_grow": "Should Item Grow When Selected",
     "immersivehotbar.option.should_grow.desc": "If enabled, the selected slot will scale larger than the rest.",
+
+    "immersivehotbar.option.durability_animates": "Durability Animates",
+    "immersivehotbar.option.durability_animates.desc": "If enabled, items that take durability damage will animate. \n\nTools and Weapons will only animate if their toggles are enabled.",
 
     "immersivehotbar.option.tool_animates": "Tool Animates",
     "immersivehotbar.option.tool_animates.desc": "If enabled, tools (e.g., pickaxe, axe, shovel) will animate when used.",

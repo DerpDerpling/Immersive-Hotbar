@@ -19,6 +19,9 @@ public class ImmersiveHotbarConfig {
     public static boolean shouldItemGrowWhenSelected = true;
 
     @SerialEntry
+    public static boolean durabilityAnimates = true;
+
+    @SerialEntry
     public static boolean toolAnimates = false;
 
     @SerialEntry

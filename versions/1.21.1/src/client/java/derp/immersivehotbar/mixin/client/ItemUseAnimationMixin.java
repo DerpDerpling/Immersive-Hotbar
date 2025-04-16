@@ -1,6 +1,7 @@
 package derp.immersivehotbar.mixin.client;
 
 import derp.immersivehotbar.InGameHudAnimationHandler;
+import derp.immersivehotbar.util.InteractiveBlockChecker;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
@@ -17,6 +18,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.toolAnimates;
+import static derp.immersivehotbar.util.ItemChecker.isTool;
+import static derp.immersivehotbar.util.ItemChecker.isWeapon;
+
 @Mixin(ClientPlayerInteractionManager.class)
 public abstract class ItemUseAnimationMixin {
 
@@ -24,10 +29,27 @@ public abstract class ItemUseAnimationMixin {
 
     @Inject(method = "interactBlock", at = @At("RETURN"))
     private void onInteractBlock(ClientPlayerEntity player, Hand hand, BlockHitResult hitResult, CallbackInfoReturnable<ActionResult> cir) {
-        if (cir.getReturnValue().isAccepted() && player.isInCreativeMode()) {
+        if (cir.getReturnValue().isAccepted()) {
             ItemStack stack = player.getStackInHand(hand);
-            if (stack.getItem() instanceof BlockItem) {
-                triggerHotbarAnimation(hand);
+
+            if (stack.getItem() instanceof BlockItem blockItem) {
+                var world = player.getWorld();
+                var placedPos = hitResult.getBlockPos().offset(hitResult.getSide());
+
+                if (world.getBlockState(placedPos).getBlock() == blockItem.getBlock()) {
+                    triggerHotbarAnimation(hand);
+                    return;
+                }
+                if (world.getBlockState(placedPos).isReplaceable()) {
+                    triggerHotbarAnimation(hand);
+                    return;
+                }
+            }
+
+            if ((isTool(stack) || isWeapon(stack)) && !InteractiveBlockChecker.isInteractive(player, hitResult)) {
+                if (toolAnimates) {
+                    triggerHotbarAnimation(hand);
+                }
             }
         }
     }

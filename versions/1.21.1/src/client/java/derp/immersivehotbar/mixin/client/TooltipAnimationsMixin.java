@@ -28,7 +28,6 @@ public class TooltipAnimationsMixin {
     @Shadow @Final private MinecraftClient client;
     @Shadow private ItemStack currentStack;
     @Shadow private int heldItemTooltipFade;
-    @Unique private boolean tooltipLockedUntilFadeComplete = false;
 
 
     @Unique private long lastRenderTime = System.nanoTime();
@@ -62,7 +61,7 @@ public class TooltipAnimationsMixin {
 
 
         // Bounce animation when switching items
-        if (!isCurrentEmpty && stackChanged && !tooltipLockedUntilFadeComplete) {
+        if (!isCurrentEmpty && stackChanged) {
             tooltipScale = 1.2f;
         }
 
@@ -87,7 +86,6 @@ public class TooltipAnimationsMixin {
             lastKnownFadeSeconds = heldItemTooltipFade / 20.0f;
         } else if (justSwitchedToEmpty && lastTooltipText != null && !lastTooltipText.getString().isEmpty()) {
             lastKnownFadeSeconds = 0.2f;
-            tooltipLockedUntilFadeComplete = true;
         } else if (lastKnownFadeSeconds > 0) {
             lastKnownFadeSeconds -= deltaSeconds;
         }
@@ -123,7 +121,6 @@ public class TooltipAnimationsMixin {
             tooltipScale += (0.0f - tooltipScale) * (10.0f * deltaSeconds);
         }
         if (lastKnownFadeSeconds <= 0 || tooltipScale <= 0.01f) {
-            tooltipLockedUntilFadeComplete = false;
             lastTooltipText = Text.empty();
             lastTextWidth = 0;
             tooltipScale = 0f;
