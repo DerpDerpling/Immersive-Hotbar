@@ -20,6 +20,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.immersiveToolTip;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.tooltipYOffset;
 import static derp.immersivehotbar.util.TooltipAnimationState.*;
 
 @Mixin(InGameHud.class)
@@ -43,14 +44,15 @@ public class TooltipAnimationsMixin {
         lastRenderTime = currentTime;
 
 
-        boolean isCurrentEmpty = currentStack.isEmpty();
+        ItemStack actualStack = currentStack;
+        boolean isCurrentEmpty = actualStack.isEmpty();
         boolean wasNotEmptyBefore = !lastStack.isEmpty();
-        boolean justSwitchedToEmpty = isCurrentEmpty && wasNotEmptyBefore;
+        boolean justSwitchedToEmpty = (heldItemTooltipFade <= 0 && wasNotEmptyBefore && isCurrentEmpty);
 
-        boolean stackChanged = !currentStack.isEmpty() &&
-                (!lastStack.isOf(currentStack.getItem()) ||
-                        !lastStack.getName().getString().equals(currentStack.getName().getString()));
-        boolean isHoldingItem = !currentStack.isEmpty();
+        boolean stackChanged = !actualStack.isEmpty() && (!lastStack.isOf(actualStack.getItem()) || !ItemStack.areItemsEqual(lastStack, actualStack));
+
+        boolean isHoldingItem = !actualStack.isEmpty();
+
 
         if (!isHoldingItem && heldItemTooltipFade <= 0 && lastKnownFadeSeconds <= 0) {
             tooltipScale = 0f;
@@ -66,21 +68,23 @@ public class TooltipAnimationsMixin {
         }
 
 
-        lastStack = currentStack.copy();
-        if (!isCurrentEmpty) {
-            lastStack = currentStack.copy();
+        if (!isCurrentEmpty || justSwitchedToEmpty) {
+            lastStack = actualStack.copy();
 
-            MutableText mutableText = Text.empty()
-                    .append(currentStack.getName())
-                    .formatted(currentStack.getRarity().getFormatting());
+            if (!actualStack.isEmpty()) {
+                MutableText mutableText = Text.empty()
+                        .append(actualStack.getName())
+                        .formatted(actualStack.getRarity().getFormatting());
 
-            if (currentStack.contains(DataComponentTypes.CUSTOM_NAME)) {
-                mutableText.formatted(Formatting.ITALIC);
+                if (actualStack.contains(DataComponentTypes.CUSTOM_NAME)) {
+                    mutableText.formatted(Formatting.ITALIC);
+                }
+
+                lastTooltipText = mutableText;
+                lastTextWidth = client.textRenderer.getWidth(mutableText);
             }
-
-            lastTooltipText = mutableText;
-            lastTextWidth = client.textRenderer.getWidth(mutableText);
         }
+
 
         if (heldItemTooltipFade > 0) {
             lastKnownFadeSeconds = heldItemTooltipFade / 20.0f;
@@ -100,7 +104,8 @@ public class TooltipAnimationsMixin {
             tooltipScale = MathHelper.clamp(tooltipScale, 0.0f, 1.5f);
 
             int x = (context.getScaledWindowWidth() - lastTextWidth) / 2;
-            int y = context.getScaledWindowHeight() - 59;
+            int screenHeight = client.getWindow().getScaledHeight();
+            int y = screenHeight - Math.round(tooltipYOffset * (screenHeight / 240f));
             if (client.interactionManager != null && !client.interactionManager.hasStatusBars()) {
                 y += 14;
             }

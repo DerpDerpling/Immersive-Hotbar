@@ -6,6 +6,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents;
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.*;
 
 import java.util.Arrays;
@@ -18,6 +19,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 	private ItemStack lastUsedItem = ItemStack.EMPTY;
 	private boolean wasCrossbowChargedMainhand = false;
 	private boolean wasCrossbowChargedOffhand = false;
+	public static final boolean IS_DOUBLEHOTBAR_LOADED = FabricLoader.getInstance().isModLoaded("double_hotbar");
 
 	@Override
 	public void onInitializeClient() {

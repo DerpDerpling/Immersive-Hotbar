@@ -31,6 +31,9 @@ public class ImmersiveHotbarConfig {
     public static boolean bouncyAnimation = false;
 
     @SerialEntry
+    public static boolean foodAnimates = true;
+
+    @SerialEntry
     public static boolean toolsIgnoreBounce = false;
 
     @SerialEntry
@@ -47,6 +50,12 @@ public class ImmersiveHotbarConfig {
 
     @SerialEntry
     public static boolean immersiveToolTip = true;
+
+    @SerialEntry
+    public static int tooltipYOffset = 52;
+
+    @SerialEntry
+    public static boolean scaleTooltipOffset = true;
 
     @SerialEntry
     public static float durabilityGlowThreshold = 0.8f;

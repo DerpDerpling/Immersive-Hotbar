@@ -16,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
 
+import static derp.immersivehotbar.ImmersiveHotbarClient.IS_DOUBLEHOTBAR_LOADED;
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 import static derp.immersivehotbar.util.SlotAnimationState.*;
 import static derp.immersivehotbar.util.ItemChecker.*;
@@ -87,6 +88,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 	@Unique
 	private void handleHotbarSlotRender(DrawContext context, int x, int y, PlayerEntity player, ItemStack stack, int seed, CallbackInfo ci) {
 		int slotIndex = currentHotbarSlot++;
+		ensureCapacity(slotIndex);
 		int centerX = x + 8;
 		int centerY = y + 8;
 		boolean isSelected = (slotIndex == player.getInventory().selectedSlot);
@@ -153,14 +155,14 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		if (durabilityAnimates && offhandStack.isDamageable()) {
 			int currentDamage = offhandStack.getDamage();
 			if (currentDamage > lastOffhandDamage && !wasUsed && shouldAnimate) {
-				immersive_hotbar$triggerOffhandAnimation(9);
+				if (IS_DOUBLEHOTBAR_LOADED) immersive_hotbar$triggerOffhandAnimation(18); else immersive_hotbar$triggerOffhandAnimation(9);
 				suppressOffhandPickup = true;
 			}
 			lastOffhandDamage = currentDamage;
 		}
 
 		if (changed && !suppressOffhandPickup && shouldAnimate) {
-			immersive_hotbar$triggerOffhandAnimation(9);
+			if (IS_DOUBLEHOTBAR_LOADED) immersive_hotbar$triggerOffhandAnimation(18); else immersive_hotbar$triggerOffhandAnimation(9);
 		}
 
 		lastOffhandStack = offhandStack.copy();
@@ -202,6 +204,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		}
 
 		previousStacks[slotIndex] = stack;
+		wasUsed[slotIndex] = false;
 	}
 
 	@Unique

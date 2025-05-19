@@ -6,9 +6,10 @@
     "AttackEntityMixin",
     "ItemAnimationsMixin",
     "ItemUseAnimationMixin",
-    "TooltipAnimationsMixin"
+    "TooltipAnimationsMixin",
+    "ConsumableComponentMixin"
   ],
   "injectors": {
     "defaultRequire": 1
-	}
+  }
 }
