@@ -1,0 +1,46 @@
+{
+	"schemaVersion": 1,
+	"id": "immersive-hotbar",
+	"version": "${version}",
+	"name": "Immersive Hotbar",
+	"description": "Adds animations to the hotbar that make it more immersive.",
+	"authors": [
+		"DerpDerpling"
+	],
+	"contact": {
+		"homepage": "https://modrinth.com/mod/immersive-hotbar",
+		"sources": "https://github.com/DerpDerpling/Interactive-Hotbar",
+		"issues": "https://github.com/DerpDerpling/Interactive-Hotbar/issues"
+	},
+	"license": "MIT",
+	"icon": "assets/immersive-hotbar/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"main": [
+			"derp.immersivehotbar.ImmersiveHotbar"
+		],
+		"client": [
+			"derp.immersivehotbar.ImmersiveHotbarClient"
+		],
+		"fabric-datagen": [
+			"derp.immersivehotbar.ImmersiveHotbarDataGenerator"
+		],
+		"modmenu": [
+			"derp.immersivehotbar.config.ModMenuInit"
+		]
+	},
+	"mixins": [
+		"immersive-hotbar.mixins.json",
+		{
+			"config": "immersive-hotbar.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.10",
+		"minecraft": ">=1.20 <1.21",
+		"java": ">=17",
+		"fabric-api": "*",
+		"yet_another_config_lib_v3": ">=3.2.2"
+	}
+}
