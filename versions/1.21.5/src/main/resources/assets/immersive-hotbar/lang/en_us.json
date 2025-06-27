@@ -10,8 +10,11 @@
     "immersivehotbar.option.tooltip_animation": "Animated Tooltip",
     "immersivehotbar.option.tooltip_animation.desc": "If enabled, the item tooltip will animate when selecting items.",
 
+    "immersivehotbar.option.tooltip_y_offset_toggle": "Toggle Tooltip Y Offset",
+    "immersivehotbar.option.tooltip_y_offset_toggle.desc": "Disables the Y Offest value if configured. Turn this on if you want to change the offset of the tooltip.",
+
     "immersivehotbar.option.tooltip_y_offset": "Tooltip Y Offset",
-    "immersivehotbar.option.tooltip_y_offset.desc": "Adjust the vertical position of the tooltip. \n\n(Vanilla is 52).",
+    "immersivehotbar.option.tooltip_y_offset.desc": "Adjust the vertical position of the tooltip. \n\n(Vanilla is 52). \n\nOnly works if 'Toggle Tooltip Y Offset' is enabled.",
 
     "immersivehotbar.option.scale_tooltip_offset": "Scale Tooltip Y Offset",
     "immersivehotbar.option.scale_tooltip_offset.desc": "Whether the tooltip offset should scale with resolution and GUI size. \n\nRecommended for consistent placement across fullscreen and windowed modes.\n\nIf this option is turned off and the tooltip scale is set too high/low, the tooltip may render off screen and will no longer be visible.",

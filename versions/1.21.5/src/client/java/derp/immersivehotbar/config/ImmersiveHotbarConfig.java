@@ -52,6 +52,9 @@ public class ImmersiveHotbarConfig {
     public static boolean immersiveToolTip = true;
 
     @SerialEntry
+    public static boolean tooltipYOffsetEnabled = false;
+
+    @SerialEntry
     public static int tooltipYOffset = 52;
 
     @SerialEntry

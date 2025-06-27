@@ -19,8 +19,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static derp.immersivehotbar.config.ImmersiveHotbarConfig.immersiveToolTip;
-import static derp.immersivehotbar.config.ImmersiveHotbarConfig.tooltipYOffset;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 import static derp.immersivehotbar.util.TooltipAnimationState.*;
 
 @Mixin(InGameHud.class)
@@ -104,8 +103,14 @@ public class TooltipAnimationsMixin {
             tooltipScale = MathHelper.clamp(tooltipScale, 0.0f, 1.5f);
 
             int x = (context.getScaledWindowWidth() - lastTextWidth) / 2;
-            int screenHeight = client.getWindow().getScaledHeight();
-            int y = screenHeight - Math.round(tooltipYOffset * (screenHeight / 240f));
+            int y;
+            if (tooltipYOffsetEnabled) {
+                int screenHeight = client.getWindow().getScaledHeight();
+                y = screenHeight - Math.round(tooltipYOffset * (screenHeight / 240f));
+            } else {
+                y = context.getScaledWindowHeight() - 59;
+            }
+
             if (client.interactionManager != null && !client.interactionManager.hasStatusBars()) {
                 y += 14;
             }
