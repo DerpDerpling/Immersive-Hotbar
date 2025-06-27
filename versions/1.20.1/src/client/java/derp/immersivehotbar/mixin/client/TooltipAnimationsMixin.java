@@ -99,7 +99,7 @@ public class TooltipAnimationsMixin {
 
             tooltipScale += (targetScale - tooltipScale) * (8.0f * deltaSeconds);
             tooltipScale = MathHelper.clamp(tooltipScale, 0.0f, 1.5f);
-
+            int x = (context.getScaledWindowWidth() - lastTextWidth) / 2;
             int y;
             if (tooltipYOffsetEnabled) {
                 int screenHeight = client.getWindow().getScaledHeight();
