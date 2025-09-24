@@ -5,7 +5,7 @@ import derp.immersivehotbar.util.TooltipAnimationState;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents;
+// import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents;
 import net.minecraft.item.*;
 
 import java.util.Arrays;
@@ -38,7 +38,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 				Item item = lastUsedItem.getItem();
 
 				if (weaponAnimates && (item instanceof BowItem || item instanceof CrossbowItem)) {
-					int slot = client.player.getMainHandStack() == lastUsedItem ? client.player.getInventory().getSelectedSlot() : 9;
+					int slot = client.player.getMainHandStack() == lastUsedItem ? client.player.getInventory().selectedSlot : 9;
 					triggerShrink(slot);
 				}
 				lastUsedItem = ItemStack.EMPTY;
@@ -51,7 +51,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 			if (mainHandStack.getItem() instanceof CrossbowItem) {
 				boolean isCharged = CrossbowItem.isCharged(mainHandStack);
 				if (wasCrossbowChargedMainhand && !isCharged && weaponAnimates) {
-					int slot = client.player.getInventory().getSelectedSlot();
+					int slot = client.player.getInventory().selectedSlot;
 					triggerShrink(slot);
 				}
 				wasCrossbowChargedMainhand = isCharged;
@@ -73,13 +73,14 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 		});
 
 		// tool break animation
-		ClientPlayerBlockBreakEvents.AFTER.register((world, player, pos, state) -> {
+		// TODO: Re-enable when ClientPlayerBlockBreakEvents is available
+		/* ClientPlayerBlockBreakEvents.AFTER.register((world, player, pos, state) -> {
 			ItemStack stack = player.getMainHandStack();
 			if (isTool(stack) && toolAnimates) {
 				int slot = player.getInventory().getSelectedSlot();
 				triggerShrink(slot);
 			}
-		});
+		}); */
 	}
 
 	private void triggerShrink(int slot) {

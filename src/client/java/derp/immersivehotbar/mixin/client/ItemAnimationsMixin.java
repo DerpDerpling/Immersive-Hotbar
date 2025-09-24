@@ -79,7 +79,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		int slotIndex = currentHotbarSlot++;
 		int centerX = x + 8;
 		int centerY = y + 8;
-		boolean isSelected = (slotIndex == player.getInventory().getSelectedSlot());
+		boolean isSelected = (slotIndex == player.getInventory().selectedSlot);
 
 		if (shouldTriggerShrink(stack, slotIndex)) {
 			startShrinkAnimation(slotIndex);
@@ -214,7 +214,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 		context.getMatrices().scale(slotScales[slotIndex], slotScales[slotIndex], slotScales[slotIndex]);
 		context.getMatrices().translate(-centerX, -centerY, 0);
 		context.drawItem(player, lastSlotStacks[slotIndex], x, y, seed);
-		context.drawStackOverlay(this.client.textRenderer, lastSlotStacks[slotIndex], x, y);
+		context.drawItemInSlot(this.client.textRenderer, lastSlotStacks[slotIndex], x, y);
 		context.getMatrices().pop();
 
 		if (progress >= 1.0f) {
@@ -287,10 +287,10 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 			context.getMatrices().translate(centerX, centerY, 0);
 			context.getMatrices().scale(slotScales[slotIndex], slotScales[slotIndex], slotScales[slotIndex]);
 			context.getMatrices().translate(-centerX, -centerY, 0);
-			context.drawStackOverlay(this.client.textRenderer, stack, x, y);
+			context.drawItemInSlot(this.client.textRenderer, stack, x, y);
 		} else {
 			context.getMatrices().translate(0, 0, 200);
-			context.drawStackOverlay(this.client.textRenderer, stack, x, y);
+			context.drawItemInSlot(this.client.textRenderer, stack, x, y);
 		}
 		context.getMatrices().pop();
 	}

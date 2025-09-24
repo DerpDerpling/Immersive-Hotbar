@@ -1,5 +1,5 @@
 plugins {
-	id 'fabric-loom' version '1.10-SNAPSHOT'
+	id 'fabric-loom' version '1.9-SNAPSHOT'
 	id 'maven-publish'
 }
 
@@ -41,11 +41,7 @@ loom {
 
 }
 
-fabricApi {
-	configureDataGeneration {
-		client = true
-	}
-}
+
 loom {
 	accessWidenerPath = file("src/main/resources/immersive-hotbar.accesswidener")
 }
