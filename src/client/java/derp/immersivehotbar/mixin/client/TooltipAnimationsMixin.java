@@ -4,7 +4,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.component.DataComponentTypes;
+// import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
@@ -75,9 +75,10 @@ public class TooltipAnimationsMixin {
                     .append(currentStack.getName())
                     .formatted(currentStack.getRarity().getFormatting());
 
-            if (currentStack.contains(DataComponentTypes.CUSTOM_NAME)) {
+            // TODO: Re-enable when DataComponentTypes is available
+            /* if (currentStack.contains(DataComponentTypes.CUSTOM_NAME)) {
                 mutableText.formatted(Formatting.ITALIC);
-            }
+            } */
 
             lastTooltipText = mutableText;
             lastTextWidth = client.textRenderer.getWidth(mutableText);
@@ -117,7 +118,7 @@ public class TooltipAnimationsMixin {
             matrices.translate(-(x + lastTextWidth / 2.0f), -(y + 4), 0);
 
             context.drawTextWithBackground(client.textRenderer, lastTooltipText, x, y, lastTextWidth,
-                    ColorHelper.withAlpha(alpha, -1));
+                    (alpha << 24) | 0x00FFFFFF);
             matrices.pop();
         } else {
             tooltipScale += (0.0f - tooltipScale) * (10.0f * deltaSeconds);

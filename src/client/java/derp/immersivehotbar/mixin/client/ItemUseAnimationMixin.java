@@ -37,7 +37,7 @@ public abstract class ItemUseAnimationMixin {
         if (client.player.isInCreativeMode() && client.player == null || client.inGameHud == null) return;
 
 
-        int slotIndex = client.player.getInventory().getSelectedSlot();
+        int slotIndex = client.player.getInventory().selectedSlot;
         ((InGameHudAnimationHandler) client.inGameHud).immersive_hotbar$triggerSlotAnimation(slotIndex);
     }
 }
