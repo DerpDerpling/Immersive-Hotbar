@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "derp.immersivehotbar.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "AttackEntityMixin",
+    "ItemAnimationsMixin",
+    "ItemUseAnimationMixin",
+    "TooltipAnimationsMixin",
+    "ConsumableComponentMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
