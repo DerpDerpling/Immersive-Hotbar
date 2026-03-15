@@ -78,6 +78,68 @@ public class ImmersiveHotbarConfig {
     @SerialEntry
     public static float animationSpeed = 0.1f;
 
+
+    @SerialEntry
+    public static boolean hotbarItemAnimationsEnabled = true;
+
+    @SerialEntry
+    public static boolean vanillaItemBobbing = false;
+
+    @SerialEntry
+    public static boolean pickupAnimationsEnabled = true;
+
+    @SerialEntry
+    public static boolean useAnimationsEnabled = true;
+
+    @SerialEntry
+    public static boolean shrinkOutOnEmptyEnabled = true;
+
+    @SerialEntry
+    public static boolean offhandAnimationsEnabled = true;
+
+    @SerialEntry
+    public static boolean selectorScaleEnabled = true;
+
+
+    @SerialEntry
+    public static boolean animatedXpBar = true;
+
+    @SerialEntry
+    public static boolean xpTextPulseEnabled = true;
+
+    @SerialEntry
+    public static float xpBarSpeed = 1.0f;
+
+    @SerialEntry
+    public static boolean xpGlowEnabled = true;
+
+    @SerialEntry
+    public static Color xpGlowColor = new Color(255, 255, 85, 255);
+
+    @SerialEntry
+    public static float xpGlowFadeSpeed = 0.12f;
+
+    @SerialEntry
+    public static float xpGlowBoostOnGain = 0.35f;
+
+    @SerialEntry
+    public static int glowTailPx = 18;
+
+    @SerialEntry
+    public static int glowTailStrips = 6;
+
+    @SerialEntry
+    public static boolean xpLevelUpParticlesEnabled = true;
+
+    @SerialEntry
+    public static Color xpLevelUpParticleColor = new Color(255, 255, 85, 255);
+
+    @SerialEntry
+    public static int xpLevelUpParticleLevels = 5;
+
+
+
+
     public enum shouldShowBackground {
         DISABLED,
         ENABLED,
