@@ -1,17 +1,16 @@
 package derp.immersivehotbar.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.ShearsItem;
-import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 public class ItemChecker {
 
     public static boolean isTool(ItemStack stack) {
-        return stack.isIn(ItemTags.PICKAXES) || stack.isIn(ItemTags.SHOVELS) || stack.isIn(ItemTags.AXES) || stack.isIn(ItemTags.HOES) || stack.isOf(Items.SHEARS);
+        return stack.is(ItemTags.PICKAXES) || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.AXES) || stack.is(ItemTags.HOES) || stack.is(Items.SHEARS);
     }
 
     public static boolean isWeapon(ItemStack stack) {
-        return stack.isIn(ItemTags.SWORDS) || stack.isOf(Items.BOW) || stack.isOf(Items.CROSSBOW) || stack.isOf(Items.TRIDENT) || stack.isOf(Items.MACE);
+        return stack.is(ItemTags.SWORDS) || stack.is(Items.BOW) || stack.is(Items.CROSSBOW) || stack.is(Items.TRIDENT) || stack.is(Items.MACE);
     }
 }

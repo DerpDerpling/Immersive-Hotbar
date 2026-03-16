@@ -5,11 +5,11 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import derp.immersivehotbar.util.UIParticle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.player.LocalPlayer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -27,14 +27,14 @@ import java.util.List;
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 
 @Environment(EnvType.CLIENT)
-@Mixin(InGameHud.class)
+@Mixin(Gui.class)
 public abstract class XPBarMixin {
     @Unique
     private final List<UIParticle> uiParticles = new ArrayList<>();
     @Shadow
-    private int scaledWidth;
+    private int screenWidth;
     @Shadow
-    private int scaledHeight;
+    private int screenHeight;
     @Unique
     private float animatedXpProgress = 0f;
     @Unique
@@ -62,32 +62,32 @@ public abstract class XPBarMixin {
     }
 
     @Shadow
-    public abstract TextRenderer getTextRenderer();
+    public abstract Font getFont();
 
     @Inject(method = "renderExperienceBar", at = @At("HEAD"))
-    private void onRenderExperienceBar(DrawContext context, int x, CallbackInfo ci) {
+    private void onRenderExperienceBar(GuiGraphics context, int x, CallbackInfo ci) {
         tickXPAnimation();
     }
 
     @Inject(method = "renderExperienceBar", at = @At("TAIL"))
-    private void renderXpFrontGlow(DrawContext context, int x, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
+    private void renderXpFrontGlow(GuiGraphics context, int x, CallbackInfo ci) {
+        Minecraft client = Minecraft.getInstance();
         if (client.player == null) return;
 
         int glowRgb = rgb(xpGlowColor);
         int barWidth = 182;
         int barHeight = 5;
-        int y = client.getWindow().getScaledHeight() - 32 + 3;
+        int y = client.getWindow().getGuiScaledHeight() - 32 + 3;
 
         int filled = (int) (glowHeadProgress * (float) (barWidth + 1));
         if (filled <= 0) return;
 
         int frontX = x + filled - 1;
 
-        context.getMatrices().push();
+        context.pose().pushPose();
 
         RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE);
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
 
         float t = xpFrontGlow;
         if (xpGlowEnabled && t > 0.001f) {
@@ -117,14 +117,14 @@ public abstract class XPBarMixin {
             }
         }
 
-        RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         RenderSystem.disableBlend();
 
-        context.getMatrices().pop();
+        context.pose().popPose();
     }
 
     @Inject(method = "renderExperienceBar", at = @At("TAIL"))
-    private void renderParticles(DrawContext context, int x, CallbackInfo ci) {
+    private void renderParticles(GuiGraphics context, int x, CallbackInfo ci) {
         if (uiParticles.isEmpty()) return;
 
         RenderSystem.enableBlend();
@@ -138,8 +138,8 @@ public abstract class XPBarMixin {
                 continue;
             }
 
-            context.getMatrices().push();
-            context.getMatrices().translate(p.x, p.y, 0);
+            context.pose().pushPose();
+            context.pose().translate(p.x, p.y, 0);
 
             float size = 2.5f;
             Color base = xpLevelUpParticleColor;
@@ -152,50 +152,50 @@ public abstract class XPBarMixin {
             int color = ((int) (p.alpha * 255) << 24) | rgb;
 
             context.fill((int) -size, (int) -size, (int) size, (int) size, color);
-            context.getMatrices().pop();
+            context.pose().popPose();
         }
 
         RenderSystem.disableBlend();
     }
 
-    @Inject(method = "renderExperienceBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;IIIZ)I", ordinal = 0, shift = At.Shift.BEFORE))
-    private void pushXpLevelScale(DrawContext context, int x, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
+    @Inject(method = "renderExperienceBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I", ordinal = 0, shift = At.Shift.BEFORE))
+    private void pushXpLevelScale(GuiGraphics context, int x, CallbackInfo ci) {
+        Minecraft client = Minecraft.getInstance();
         if (client.player == null || client.player.experienceLevel <= 0) return;
 
         float scale = xpTextPulseEnabled ? pulseScale : 1.0f;
         if (scale <= 1.0f) return;
 
         String text = "" + client.player.experienceLevel;
-        int textX = (this.scaledWidth - this.getTextRenderer().getWidth(text)) / 2;
-        int textY = this.scaledHeight - 31 - 4;
+        int textX = (this.screenWidth - this.getFont().width(text)) / 2;
+        int textY = this.screenHeight - 31 - 4;
 
-        float centerX = textX + this.getTextRenderer().getWidth(text) / 2f;
+        float centerX = textX + this.getFont().width(text) / 2f;
         float centerY = textY + 4f;
 
-        context.getMatrices().push();
-        context.getMatrices().translate(centerX, centerY, 0.0F);
-        context.getMatrices().scale(scale, scale, 1.0F);
-        context.getMatrices().translate(-centerX, -centerY, 0.0F);
+        context.pose().pushPose();
+        context.pose().translate(centerX, centerY, 0.0F);
+        context.pose().scale(scale, scale, 1.0F);
+        context.pose().translate(-centerX, -centerY, 0.0F);
     }
 
-    @Inject(method = "renderExperienceBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawText(Lnet/minecraft/client/font/TextRenderer;Ljava/lang/String;IIIZ)I", ordinal = 4, shift = At.Shift.AFTER))
-    private void popXpLevelScale(DrawContext context, int x, CallbackInfo ci) {
-        MinecraftClient client = MinecraftClient.getInstance();
+    @Inject(method = "renderExperienceBar", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;IIIZ)I", ordinal = 4, shift = At.Shift.AFTER))
+    private void popXpLevelScale(GuiGraphics context, int x, CallbackInfo ci) {
+        Minecraft client = Minecraft.getInstance();
         if (client.player == null || client.player.experienceLevel <= 0) return;
 
         float scale = xpTextPulseEnabled ? pulseScale : 1.0f;
         if (scale <= 1.0f) return;
 
-        context.getMatrices().pop();
+        context.pose().popPose();
     }
 
     @Unique
     public void tickXPAnimation() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client.player == null) return;
 
-        float dt = client.getLastFrameDuration();
+        float dt = client.getDeltaFrameTime();
 
         xpGainThisFrame = false;
         leveledUpThisFrame = false;
@@ -312,8 +312,8 @@ public abstract class XPBarMixin {
 
     @Unique
     private void spawnUIParticles() {
-        int x = MinecraftClient.getInstance().getWindow().getScaledWidth() / 2;
-        int y = MinecraftClient.getInstance().getWindow().getScaledHeight() - 32;
+        int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() / 2;
+        int y = Minecraft.getInstance().getWindow().getGuiScaledHeight() - 32;
 
         for (int i = 0; i < 25; i++) {
             UIParticle p = new UIParticle(x, y);
@@ -327,8 +327,8 @@ public abstract class XPBarMixin {
         }
     }
 
-    @Redirect(method = "renderExperienceBar", at = @At(value = "FIELD", target = "Lnet/minecraft/client/network/ClientPlayerEntity;experienceProgress:F", opcode = Opcodes.GETFIELD))
-    private float redirectExperienceProgress(ClientPlayerEntity instance) {
+    @Redirect(method = "renderExperienceBar", at = @At(value = "FIELD", target = "Lnet/minecraft/client/player/LocalPlayer;experienceProgress:F", opcode = Opcodes.GETFIELD))
+    private float redirectExperienceProgress(LocalPlayer instance) {
         return animatedXpProgress;
     }
 }

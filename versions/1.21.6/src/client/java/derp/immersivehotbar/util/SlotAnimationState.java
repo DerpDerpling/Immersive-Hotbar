@@ -1,8 +1,7 @@
 package derp.immersivehotbar.util;
 
-import net.minecraft.item.ItemStack;
-
 import java.util.Arrays;
+import net.minecraft.world.item.ItemStack;
 
 public class SlotAnimationState {
     public static float[] slotScales = new float[20];

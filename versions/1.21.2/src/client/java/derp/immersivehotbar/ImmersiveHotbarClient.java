@@ -7,8 +7,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.item.*;
-
+import net.minecraft.world.item.*;
 import java.util.Arrays;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
@@ -34,12 +33,12 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 
 			// track bow usage
 			if (isUsing) {
-				lastUsedItem = client.player.getActiveItem();
+				lastUsedItem = client.player.getUseItem();
 			} else if (wasUsingItem && !lastUsedItem.isEmpty()) {
 				Item item = lastUsedItem.getItem();
 
 				if (weaponAnimates && (item instanceof BowItem || item instanceof CrossbowItem)) {
-					int slot = client.player.getMainHandStack() == lastUsedItem ? client.player.getInventory().selectedSlot : 9;
+					int slot = client.player.getMainHandItem() == lastUsedItem ? client.player.getInventory().selected : 9;
 					triggerShrink(slot);
 				}
 				lastUsedItem = ItemStack.EMPTY;
@@ -48,11 +47,11 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 			wasUsingItem = isUsing;
 
 			// crossbow mainhand
-			ItemStack mainHandStack = client.player.getMainHandStack();
+			ItemStack mainHandStack = client.player.getMainHandItem();
 			if (mainHandStack.getItem() instanceof CrossbowItem) {
 				boolean isCharged = CrossbowItem.isCharged(mainHandStack);
 				if (wasCrossbowChargedMainhand && !isCharged && weaponAnimates) {
-					int slot = client.player.getInventory().selectedSlot;
+					int slot = client.player.getInventory().selected;
 					triggerShrink(slot);
 				}
 				wasCrossbowChargedMainhand = isCharged;
@@ -61,7 +60,7 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 			}
 
 			// crossbow offhand
-			ItemStack offHandStack = client.player.getOffHandStack();
+			ItemStack offHandStack = client.player.getOffhandItem();
 			if (offHandStack.getItem() instanceof CrossbowItem) {
 				boolean isCharged = CrossbowItem.isCharged(offHandStack);
 				if (wasCrossbowChargedOffhand && !isCharged && weaponAnimates) {
@@ -75,9 +74,9 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 
 		// tool break animation
 		ClientPlayerBlockBreakEvents.AFTER.register((world, player, pos, state) -> {
-			ItemStack stack = player.getMainHandStack();
-			if (stack.getItem() instanceof MiningToolItem && toolAnimates) {
-				int slot = player.getInventory().selectedSlot;
+			ItemStack stack = player.getMainHandItem();
+			if (stack.getItem() instanceof DiggerItem && toolAnimates) {
+				int slot = player.getInventory().selected;
 				triggerShrink(slot);
 			}
 		});

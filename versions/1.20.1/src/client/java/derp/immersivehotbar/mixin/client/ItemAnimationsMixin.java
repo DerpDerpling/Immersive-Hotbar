@@ -3,20 +3,21 @@ package derp.immersivehotbar.mixin.client;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import derp.immersivehotbar.InGameHudAnimationHandler;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.hud.InGameHud;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.MathHelper;
+import derp.immersivehotbar.config.ImmersiveHotbarConfig.shouldShowBackground;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.Arrays;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import static derp.immersivehotbar.ImmersiveHotbarClient.IS_DOUBLEHOTBAR_LOADED;
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
@@ -24,13 +25,13 @@ import static derp.immersivehotbar.util.ItemChecker.isTool;
 import static derp.immersivehotbar.util.ItemChecker.isWeapon;
 import static derp.immersivehotbar.util.SlotAnimationState.*;
 
-@Mixin(InGameHud.class)
+@Mixin(Gui.class)
 public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 
     @Mutable
     @Final
     @Shadow
-    private final MinecraftClient client;
+    private final Minecraft minecraft;
 
     @Unique
     private int currentHotbarSlot = 0;
@@ -51,8 +52,8 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
     @Unique
     private boolean suppressOffhandPickup = false;
 
-    public ItemAnimationsMixin(MinecraftClient client) {
-        this.client = client;
+    public ItemAnimationsMixin(Minecraft client) {
+        this.minecraft = client;
     }
 
     @Override
@@ -74,12 +75,12 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
     }
 
     @Inject(method = "renderHotbar", at = @At("HEAD"))
-    private void onRenderHotbarStart(float tickDelta, DrawContext context, CallbackInfo ci) {
+    private void onRenderHotbarStart(float tickDelta, GuiGraphics context, CallbackInfo ci) {
         currentHotbarSlot = 0;
 
         long currentTime = System.nanoTime();
         deltaSeconds = (currentTime - lastRenderTime) / 1_000_000_000.0f;
-        deltaSeconds = MathHelper.clamp(deltaSeconds, 0f, 0.05f);
+        deltaSeconds = Mth.clamp(deltaSeconds, 0f, 0.05f);
         lastRenderTime = currentTime;
 
         if (!initialized) {
@@ -109,8 +110,8 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
         }
     }
 
-    @Inject(method = "renderHotbarItem", at = @At("HEAD"))
-    private void onRenderHotbarItemHead(DrawContext context, int x, int y, float f, PlayerEntity player, ItemStack stack, int seed, CallbackInfo ci) {
+    @Inject(method = "renderSlot", at = @At("HEAD"))
+    private void onRenderHotbarItemHead(GuiGraphics context, int x, int y, float f, Player player, ItemStack stack, int seed, CallbackInfo ci) {
         int slotIndex = currentHotbarSlot++;
         ensureCapacity(slotIndex);
 
@@ -118,7 +119,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
             if (!stack.isEmpty()) {
                 lastSlotStacks[slotIndex] = stack.copy();
                 lastSlotCounts[slotIndex] = stack.getCount();
-                lastSlotDamage[slotIndex] = stack.isDamageable() ? stack.getDamage() : 0;
+                lastSlotDamage[slotIndex] = stack.isDamageableItem() ? stack.getDamageValue() : 0;
             } else {
                 lastSlotStacks[slotIndex] = ItemStack.EMPTY;
                 lastSlotCounts[slotIndex] = 0;
@@ -135,7 +136,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
             return;
         }
 
-        boolean isSelected = (slotIndex == player.getInventory().selectedSlot);
+        boolean isSelected = (slotIndex == player.getInventory().selected);
 
 
         if (shrinkOutOnEmptyEnabled && shouldTriggerShrink(stack, slotIndex)) {
@@ -186,14 +187,14 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
         }
     }
 
-    @WrapOperation(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/item/ItemStack;getBobbingAnimationTime()I"))
+    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;getPopTime()I"))
     private int disableBobbing(ItemStack stack, Operation<Integer> original) {
         if (!hotbarItemAnimationsEnabled) return original.call(stack);
         return !vanillaItemBobbing ? 0 : original.call(stack);
     }
 
-    @WrapOperation(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawItem(Lnet/minecraft/entity/LivingEntity;Lnet/minecraft/item/ItemStack;III)V"))
-    private void wrapDrawItem(DrawContext ctx, LivingEntity entity, ItemStack stack, int x, int y, int seed, Operation<Void> original) {
+    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItem(Lnet/minecraft/world/entity/LivingEntity;Lnet/minecraft/world/item/ItemStack;III)V"))
+    private void wrapDrawItem(GuiGraphics ctx, LivingEntity entity, ItemStack stack, int x, int y, int seed, Operation<Void> original) {
         if (!hotbarItemAnimationsEnabled) {
             original.call(ctx, entity, stack, x, y, seed);
             return;
@@ -206,16 +207,16 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
         int cx = x + 8;
         int cy = y + 8;
 
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(cx, cy, 0);
-        ctx.getMatrices().scale(scale, scale, 1);
-        ctx.getMatrices().translate(-cx, -cy, 0);
+        ctx.pose().pushPose();
+        ctx.pose().translate(cx, cy, 0);
+        ctx.pose().scale(scale, scale, 1);
+        ctx.pose().translate(-cx, -cy, 0);
         original.call(ctx, entity, stack, x, y, seed);
-        ctx.getMatrices().pop();
+        ctx.pose().popPose();
     }
 
-    @WrapOperation(method = "renderHotbarItem", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/DrawContext;drawItemInSlot(Lnet/minecraft/client/font/TextRenderer;Lnet/minecraft/item/ItemStack;II)V"))
-    private void wrapDrawCount(DrawContext ctx, TextRenderer textRenderer, ItemStack stack, int x, int y, Operation<Void> original) {
+    @WrapOperation(method = "renderSlot", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;renderItemDecorations(Lnet/minecraft/client/gui/Font;Lnet/minecraft/world/item/ItemStack;II)V"))
+    private void wrapDrawCount(GuiGraphics ctx, Font textRenderer, ItemStack stack, int x, int y, Operation<Void> original) {
         int slotIndex = currentHotbarSlot - 1;
         ensureCapacity(slotIndex);
 
@@ -230,24 +231,24 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
         int cx = x + 8;
         int cy = y + 8;
 
-        ctx.getMatrices().push();
-        ctx.getMatrices().translate(cx, cy, 0);
-        ctx.getMatrices().scale(scale, scale, 1);
-        ctx.getMatrices().translate(-cx, -cy, 0);
+        ctx.pose().pushPose();
+        ctx.pose().translate(cx, cy, 0);
+        ctx.pose().scale(scale, scale, 1);
+        ctx.pose().translate(-cx, -cy, 0);
 
         original.call(ctx, textRenderer, stack, x, y);
-        ctx.getMatrices().pop();
+        ctx.pose().popPose();
     }
 
     @Inject(method = "renderHotbar", at = @At("TAIL"))
-    private void renderShrinkingItems(float tickDelta, DrawContext context, CallbackInfo ci) {
+    private void renderShrinkingItems(float tickDelta, GuiGraphics context, CallbackInfo ci) {
         if (!hotbarItemAnimationsEnabled || !shrinkOutOnEmptyEnabled) return;
 
-        PlayerEntity player = client.player;
+        Player player = minecraft.player;
         if (player == null) return;
 
-        int centerXBase = client.getWindow().getScaledWidth() / 2;
-        int y = client.getWindow().getScaledHeight() - 16 - 3;
+        int centerXBase = minecraft.getWindow().getGuiScaledWidth() / 2;
+        int y = minecraft.getWindow().getGuiScaledHeight() - 16 - 3;
 
         for (int i = 0; i < 9; i++) {
             if (!isShrinking[i]) continue;
@@ -272,15 +273,15 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
             int cx = x + 8;
             int cy = y + 8;
 
-            context.getMatrices().push();
-            context.getMatrices().translate(cx, cy, 0);
-            context.getMatrices().scale(scale, scale, 1);
-            context.getMatrices().translate(-cx, -cy, 0);
+            context.pose().pushPose();
+            context.pose().translate(cx, cy, 0);
+            context.pose().scale(scale, scale, 1);
+            context.pose().translate(-cx, -cy, 0);
 
-            context.drawItem(player, stack, x, y, 0);
-            context.drawItemInSlot(client.textRenderer, stack, x, y);
+            context.renderItem(player, stack, x, y, 0);
+            context.renderItemDecorations(minecraft.font, stack, x, y);
 
-            context.getMatrices().pop();
+            context.pose().popPose();
 
             if (progress >= 1.0f) {
                 isShrinking[i] = false;
@@ -319,21 +320,21 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
     @Unique
     private void handleOffhandSlotAnimations() {
         if (!offhandAnimationsEnabled) return;
-        if (client.player == null) return;
+        if (minecraft.player == null) return;
 
-        ItemStack offhandStack = client.player.getOffHandStack();
+        ItemStack offhandStack = minecraft.player.getOffhandItem();
 
         boolean isToolItem = isTool(offhandStack);
         boolean isWeaponItem = isWeapon(offhandStack);
         boolean shouldAnimate = (!isToolItem || toolAnimates) && (!isWeaponItem || weaponAnimates);
 
-        boolean changed = !ItemStack.areItemsEqual(offhandStack, lastOffhandStack) || !ItemStack.areEqual(offhandStack, lastOffhandStack) || offhandStack.getCount() != lastOffhandCount;
+        boolean changed = !ItemStack.isSameItem(offhandStack, lastOffhandStack) || !ItemStack.matches(offhandStack, lastOffhandStack) || offhandStack.getCount() != lastOffhandCount;
 
         boolean wasUsed = false;
         int offhandIndex = IS_DOUBLEHOTBAR_LOADED ? 18 : 9;
 
-        if (useAnimationsEnabled && durabilityAnimates && offhandStack.isDamageable()) {
-            int currentDamage = offhandStack.getDamage();
+        if (useAnimationsEnabled && durabilityAnimates && offhandStack.isDamageableItem()) {
+            int currentDamage = offhandStack.getDamageValue();
             if (currentDamage > lastOffhandDamage && !wasUsed && shouldAnimate) {
                 immersive_hotbar$triggerOffhandAnimation(offhandIndex);
                 suppressOffhandPickup = true;
@@ -354,12 +355,12 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
     private void handleItemChangeAnimations(ItemStack stack, int slotIndex) {
         boolean isToolItem = isTool(stack);
         boolean isWeaponItem = isWeapon(stack);
-        boolean isDamageable = stack.isDamageable();
+        boolean isDamageable = stack.isDamageableItem();
 
         boolean shouldAnimateType = (!isToolItem || toolAnimates) && (!isWeaponItem || weaponAnimates);
 
         boolean wasEmpty = lastSlotStacks[slotIndex].isEmpty();
-        boolean itemChanged = !ItemStack.areItemsEqual(stack, lastSlotStacks[slotIndex]);
+        boolean itemChanged = !ItemStack.isSameItem(stack, lastSlotStacks[slotIndex]);
         boolean countIncreased = stack.getCount() > lastSlotCounts[slotIndex];
 
         if (pickupAnimationsEnabled && shouldAnimateType) {
@@ -370,7 +371,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
 
         if (useAnimationsEnabled && shouldAnimateType) {
             if (durabilityAnimates && isDamageable) {
-                int currentDamage = stack.getDamage();
+                int currentDamage = stack.getDamageValue();
                 int lastDamage = lastSlotDamage[slotIndex];
                 if (currentDamage > lastDamage && !wasUsed[slotIndex]) {
                     slotScales[slotIndex] = nonSelectedItemSize - 0.1f;
@@ -433,10 +434,10 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
     }
 
     @Unique
-    private void drawDurabilityGlow(DrawContext context, ItemStack stack, int x, int y) {
-        if (!lowDurabilityGlow || !stack.isDamageable()) return;
+    private void drawDurabilityGlow(GuiGraphics context, ItemStack stack, int x, int y) {
+        if (!lowDurabilityGlow || !stack.isDamageableItem()) return;
 
-        float percent = (float) stack.getDamage() / stack.getMaxDamage();
+        float percent = (float) stack.getDamageValue() / stack.getMaxDamage();
         if (percent < durabilityGlowThreshold) return;
 
         float intensity = (percent - durabilityGlowThreshold) / (1.0f - durabilityGlowThreshold);
@@ -453,23 +454,23 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
         float alpha = Math.min(Math.max(baseAlpha, 0.0f), 1.0f);
         int redGlow = ((int) (alpha * 255) << 24) | 0xFF0000;
 
-        context.getMatrices().push();
-        context.getMatrices().translate(0, 0, 100);
+        context.pose().pushPose();
+        context.pose().translate(0, 0, 100);
         context.fill(x - 2, y - 2, x + 18, y, redGlow);
         context.fill(x - 2, y + 16, x + 18, y + 18, redGlow);
         context.fill(x - 2, y, x, y + 16, redGlow);
         context.fill(x + 16, y, x + 18, y + 16, redGlow);
-        context.getMatrices().pop();
+        context.pose().popPose();
     }
 
     @Unique
-    private void drawSlotBackground(DrawContext context, int x, int y, boolean isSelected) {
+    private void drawSlotBackground(GuiGraphics context, int x, int y, boolean isSelected) {
         if (showBackground == shouldShowBackground.ENABLED || (showBackground == shouldShowBackground.ONLY_WHEN_SELECTED && isSelected)) {
 
-            context.getMatrices().push();
-            context.getMatrices().translate(0, 0, 50);
+            context.pose().pushPose();
+            context.pose().translate(0, 0, 50);
             context.fill(x - 2, y - 2, x + 18, y + 18, hotbarSelectionColor.getRGB());
-            context.getMatrices().pop();
+            context.pose().popPose();
         }
     }
 }

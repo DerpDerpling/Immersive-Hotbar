@@ -1,6 +1,6 @@
 package derp.immersivehotbar.util;
 
-import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.Minecraft;
 
 public class UIParticle {
     public float x, y;
@@ -25,8 +25,8 @@ public class UIParticle {
         y += vy;
         vy += 0.02f;
 
-        int width = MinecraftClient.getInstance().getWindow().getScaledWidth();
-        int height = MinecraftClient.getInstance().getWindow().getScaledHeight();
+        int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
+        int height = Minecraft.getInstance().getWindow().getGuiScaledHeight();
 
         return x >= -10 && x <= width + 10 && y <= height + 10 && alpha > 0f;
     }
