@@ -1,0 +1,4 @@
+- Added neoforge version (still in beta and still has template stuff everywhere lol)
+- fixed a crash involving Noxesium where the tooltip was being redirected instead of wrapped
+- fixed an issue with the tooltip blinking for a frame when dropping an item with the tooltip visible
+- fixed an issue with item pickup animations not applying to tools when toolsanimate was disabled

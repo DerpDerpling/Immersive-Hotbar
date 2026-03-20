@@ -17,3 +17,6 @@ stonecutter {
 		vcsVersion = "1.21.1"
 	}
 }
+
+include("neoforge:1.21.9")
+project(":neoforge:1.21.9").projectDir = file("neoforge/1.21.9")

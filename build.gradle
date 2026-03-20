@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.13-SNAPSHOT'
 	id 'maven-publish'
+	id 'com.modrinth.minotaur' version '2.9.0'
 }
 
 version = project.mod_version
@@ -47,7 +48,6 @@ loom {
 }
 
 dependencies {
-	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 	mappings loom.officialMojangMappings()
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -64,16 +64,12 @@ processResources {
 	}
 }
 
-// ─── Replace stonecutter.version.current with stonecutter.minecraftVersion ───
-
 def isModernMc = stonecutter.eval(project.minecraft_version, ">=1.20.5")
 
 java {
-	// if MC ≥1.20.5 → Java 21; else → Java 17
 	sourceCompatibility = isModernMc ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 	targetCompatibility = isModernMc ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
 
-	// (Optional) force Gradle to select the correct toolchain
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(isModernMc ? 21 : 17)
 	}
@@ -82,8 +78,6 @@ java {
 tasks.withType(JavaCompile).configureEach {
 	options.release = isModernMc ? 21 : 17
 }
-
-// ───────────────────────────────────────────────────────────────────────────────
 
 jar {
 	inputs.property "archivesName", project.base.archivesName
@@ -101,5 +95,95 @@ publishing {
 	}
 	repositories {
 		// …your publishing repositories…
+	}
+}
+
+def changelogFile = rootProject.file("CHANGELOG.md")
+def changelogText = project.findProperty("changelog") ?: (
+		changelogFile.exists() ? changelogFile.getText("UTF-8").trim() : ""
+)
+
+if (changelogText.isEmpty()) {
+	throw new GradleException("CHANGELOG.md is missing or empty.")
+}
+
+def supportedVersions = project.supported_minecraft_versions
+		.split(",")
+		.collect { it.trim() }
+		.findAll { !it.isEmpty() }
+
+modrinth {
+	token = System.getenv("MODRINTH_TOKEN")
+	projectId = "immersive-hotbar"
+
+	versionNumber = project.version.toString()
+	versionName = "${project.archives_base_name} ${project.version}"
+	versionType = "release"
+
+	uploadFile = remapJar
+	gameVersions = supportedVersions
+	loaders = ["fabric"]
+
+	changelog = changelogText
+
+	dependencies {
+		required.project("fabric-api")
+		required.project("yacl")
+		optional.project("modmenu")
+	}
+}
+
+tasks.modrinth {
+	dependsOn tasks.remapJar
+	doFirst {
+		println "Uploading to Modrinth"
+		println "Game versions: ${supportedVersions}"
+		println "Changelog length: ${changelogText.length()}"
+	}
+}
+
+def parseMcVersion = { String v ->
+	v.tokenize('.').collect { it as int }
+}
+
+tasks.register("publishModrinthBuild") {
+	group = "publishing"
+
+	if (project == rootProject && !subprojects.isEmpty()) {
+		description = "Builds and uploads all subprojects to Modrinth"
+
+		def publishTasks = subprojects
+				.findAll { it.tasks.findByName("publishModrinthBuild") != null && it.hasProperty("minecraft_version") }
+				.sort { a, b ->
+					def av = parseMcVersion(a.property("minecraft_version").toString())
+					def bv = parseMcVersion(b.property("minecraft_version").toString())
+
+					for (int i = 0; i < Math.max(av.size(), bv.size()); i++) {
+						def ai = i < av.size() ? av[i] : 0
+						def bi = i < bv.size() ? bv[i] : 0
+						if (ai != bi) return ai <=> bi
+					}
+					return 0
+				}
+				.collect { it.tasks.named("publishModrinthBuild") }
+
+		for (int i = 1; i < publishTasks.size(); i++) {
+			publishTasks[i].configure {
+				mustRunAfter(publishTasks[i - 1])
+			}
+		}
+
+		dependsOn publishTasks
+
+		doFirst {
+			println "Publishing all versions:"
+			publishTasks.each { t ->
+				def p = t.get().project
+				println " - ${p.path} (${p.property("minecraft_version")})"
+			}
+		}
+	} else {
+		description = "Builds and uploads the mod to Modrinth."
+		dependsOn tasks.build, tasks.modrinth
 	}
 }

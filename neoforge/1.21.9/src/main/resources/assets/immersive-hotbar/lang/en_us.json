@@ -1,0 +1,169 @@
+{
+    "immersivehotbar.title": "Immersive Hotbar Config",
+
+    "immersivehotbar.option.tooltip_animation": "Animated Tooltip",
+    "immersivehotbar.option.tooltip_animation.desc": "If enabled, the item tooltip will animate when selecting items.",
+
+    "immersivehotbar.option.tooltip_y_offset_toggle": "Toggle Tooltip Y Offset",
+    "immersivehotbar.option.tooltip_y_offset_toggle.desc": "Disables the Y Offest value if configured. Turn this on if you want to change the offset of the tooltip.",
+
+    "immersivehotbar.option.tooltip_y_offset": "Tooltip Y Offset",
+    "immersivehotbar.option.tooltip_y_offset.desc": "Adjust the vertical position of the tooltip. \n\n(Vanilla is 52). \n\nOnly works if 'Toggle Tooltip Y Offset' is enabled.",
+
+    "immersivehotbar.option.scale_tooltip_offset": "Scale Tooltip Y Offset",
+    "immersivehotbar.option.scale_tooltip_offset.desc": "Whether the tooltip offset should scale with resolution and GUI size. \n\nRecommended for consistent placement across fullscreen and windowed modes.\n\nIf this option is turned off and the tooltip scale is set too high/low, the tooltip may render off screen and will no longer be visible.",
+
+    "immersivehotbar.option.food_animates": "Food Animates",
+    "immersivehotbar.option.food_animates.desc": "If enabled, food items animate while eating.",
+
+    "immersivehotbar.option.text_scaling": "Text/Durability Bar/Cooldown Overlay Scaling",
+    "immersivehotbar.option.text_scaling.desc": "If disabled, text, durability bars, and the cooldown overlay will not scale with the item.",
+
+    "immersivehotbar.option.selected_scale": "Selected Item Slot Scale",
+    "immersivehotbar.option.selected_scale.desc": "How large the selected hotbar item appears.",
+
+    "immersivehotbar.option.unselected_scale": "Unselected Item Slot Scale",
+    "immersivehotbar.option.unselected_scale.desc": "How large unselected hotbar items appear.",
+
+    "immersivehotbar.option.shrink_speed": "Shrink Animation Speed",
+    "immersivehotbar.option.shrink_speed.desc": "Controls how fast the item visually shrinks when removed from the slot.",
+
+    "immersivehotbar.option.should_grow": "Should Item Grow When Selected",
+    "immersivehotbar.option.should_grow.desc": "If enabled, the selected slot will scale larger than the rest.",
+
+    "immersivehotbar.option.durability_animates": "Durability Animates",
+    "immersivehotbar.option.durability_animates.desc": "If enabled, items that take durability damage will animate. \n\nTools and Weapons will only animate if their toggles are enabled.",
+
+    "immersivehotbar.option.tool_animates": "Tool Animates",
+    "immersivehotbar.option.tool_animates.desc": "If enabled, tools (e.g., pickaxe, axe, shovel) will animate when used.",
+
+    "immersivehotbar.option.weapon_animates": "Weapon Animates",
+    "immersivehotbar.option.weapon_animates.desc": "If enabled, weapons (e.g., sword, bow, crossbow) will animate when used.",
+
+    "immersivehotbar.option.durability_glow": "Low Durability Glow",
+    "immersivehotbar.option.durability_glow.desc": "If enabled, items below the set durability threshold will glow red.",
+
+    "immersivehotbar.option.glow_threshold": "Durability Glow Threshold",
+    "immersivehotbar.option.glow_threshold.desc": "When to start rendering the durability glow.",
+
+    "immersivehotbar.option.show_background": "Show Hotbar Background",
+    "immersivehotbar.option.show_background.desc": "Controls when a background is drawn behind each hotbar slot.",
+
+    "immersivehotbar.option.selection_color": "Hotbar Selection Color",
+    "immersivehotbar.option.selection_color.desc": "Sets the highlight color when a hotbar slot is selected.",
+
+    "immersivehotbar.option.bouncy_animation": "Bouncy Animation",
+    "immersivehotbar.option.bouncy_animation.desc": "Enables a bouncy effect when hotbar items grow or shrink.",
+
+    "immersivehotbar.option.bounce_stiffness": "Bounce Stiffness",
+    "immersivehotbar.option.bounce_stiffness.desc": "How strongly items are pulled toward target size. Higher = snappier bounce.",
+
+    "immersivehotbar.option.bounce_damping": "Bouncy Damping",
+    "immersivehotbar.option.bounce_damping.desc": "How quickly bounce settles. Higher = less bounce.",
+
+    "immersivehotbar.option.tools_ignore_bounce": "Tools Ignore Bounce",
+    "immersivehotbar.option.tools_ignore_bounce.desc": "If enabled, tools use smooth animation even when bounce is on.",
+
+    "immersivehotbar.option.weapons_ignore_bounce": "Weapons Ignore Bounce",
+    "immersivehotbar.option.weapons_ignore_bounce.desc": "If enabled, weapons use smooth animation even when bounce is on.",
+
+    "immersivehotbar.option.pop_scale": "Pop Animation Scale",
+    "immersivehotbar.option.pop_scale.desc": "Default size before items grow. Increase for less intense animations.",
+
+    "immersivehotbar.option.animation_smoothness": "Animation Smoothness",
+    "immersivehotbar.option.animation_smoothness.desc": "Controls how smoothly items scale toward their target size.\n Only effective when bounce is disabled.",
+
+    "immersivehotbar.option.xp_glow_enabled": "XP Bar Glow",
+    "immersivehotbar.option.xp_glow_enabled.desc": "Adds a glow at the leading edge of the XP bar when XP increases.",
+    "immersivehotbar.option.xp_glow_color": "Glow Color",
+    "immersivehotbar.option.xp_glow_color.desc": "Color used for the XP bar glow.",
+
+    "immersivehotbar.option.xp_levelup_particles": "Level-Up Particles",
+    "immersivehotbar.option.xp_levelup_particles.desc": "Spawns particles on level-up milestones.",
+    "immersivehotbar.option.xp_levelup_particles_color": "Particle Color",
+    "immersivehotbar.option.xp_levelup_particles_color.desc": "Color used for level-up particles.",
+    "immersivehotbar.option.xp_levelup_particles_every": "Particle Interval",
+    "immersivehotbar.option.xp_levelup_particles_every.desc": "Spawn particles every X levels.",
+    "immersivehotbar.option.xp_glow_fade_speed": "Glow Fade Speed",
+    "immersivehotbar.option.xp_glow_fade_speed.desc": "How quickly the XP glow fades out after XP gain.",
+
+    "immersivehotbar.option.xp_glow_boost_on_gain": "Glow Boost Per Gain",
+    "immersivehotbar.option.xp_glow_boost_on_gain.desc": "How much glow intensity is added each time XP increases (accumulates).",
+
+    "immersivehotbar.option.xp_glow_tail_px": "Glow Tail Length",
+    "immersivehotbar.option.xp_glow_tail_px.desc": "Length of the trailing glow behind the XP bar front edge.",
+
+    "immersivehotbar.option.xp_glow_tail_strips": "Glow Tail Quality",
+    "immersivehotbar.option.xp_glow_tail_strips.desc": "Number of fade strips used to render the glow tail (higher = smoother).",
+    "immersivehotbar.category.general": "General",
+    "immersivehotbar.tooltip.general": "Core hotbar behavior and tooltip settings.",
+
+    "immersivehotbar.category.animations": "Animations",
+    "immersivehotbar.tooltip.animations": "Control what animates and how quickly.",
+
+    "immersivehotbar.category.effects": "Visual Effects",
+    "immersivehotbar.tooltip.effects": "Glows and particles, including XP effects.",
+
+    "immersivehotbar.group.tooltip": "Tooltip",
+    "immersivehotbar.group.tooltip.desc": "Configure the tooltip animation and its position.",
+
+    "immersivehotbar.group.animation_triggers": "Animation Triggers",
+    "immersivehotbar.group.animation_triggers.desc": "Enable animations for specific item types and events.",
+
+    "immersivehotbar.group.durability_glow": "Low Durability Glow",
+    "immersivehotbar.group.durability_glow.desc": "Glow behavior for low durability items.",
+
+    "immersivehotbar.group.xp_glow": "XP Bar Glow",
+    "immersivehotbar.group.xp_glow.desc": "Glow at the leading edge of the XP bar when XP increases.",
+
+    "immersivehotbar.group.xp_particles": "XP Level-Up Particles",
+    "immersivehotbar.group.xp_particles.desc": "Particles that spawn at level-up milestones.",
+
+    "immersivehotbar.group.animation_feel": "Animation Feel",
+    "immersivehotbar.group.animation_feel.desc": "Change the animation speeds and overall intensity of the animations.",
+
+    "immersivehotbar.option.animated_xp_bar": "Animated XP Bar",
+    "immersivehotbar.option.animated_xp_bar.desc": "Smoothly animates the XP bar instead of updating instantly.",
+
+    "immersivehotbar.option.xp_bar_speed": "XP Bar Speed",
+    "immersivehotbar.option.xp_bar_speed.desc": "Controls how quickly the animated XP bar catches up to the real XP progress.",
+
+    "immersivehotbar.group.xp_bar": "XP Bar",
+    "immersivehotbar.group.xp_bar.desc": "Settings for smooth XP bar animation.",
+
+    "immersivehotbar.option.xp_text_pulse": "XP Text Pulse",
+    "immersivehotbar.option.xp_text_pulse.desc": "Controls whether or not the XP level text pulses on level up.",
+
+    "immersivehotbar.group.item_animations": "Item Animations",
+    "immersivehotbar.group.item_animations.desc": "Toggles for hotbar slot/item animation behaviors.",
+
+    "immersivehotbar.option.hotbar_item_animations_enabled": "Enable Item Animations",
+    "immersivehotbar.option.hotbar_item_animations_enabled.desc": "Master switch for hotbar item animations. Disabling this turns off all animations added by the mod to items on the hotbar, restoring vanilla behavior.",
+
+    "immersivehotbar.option.disable_hotbar_item_bobbing": "Vanilla Item Bobbing",
+    "immersivehotbar.option.disable_hotbar_item_bobbing.desc": "Disables the vanilla item bobbing when picking up items.\n\nCan look funky when you turn it on",
+
+    "immersivehotbar.option.pickup_animations_enabled": "Pickup / Change Pop",
+    "immersivehotbar.option.pickup_animations_enabled.desc": "Plays a pop animation when an item appears in a slot, changes, or increases in stack size.",
+
+    "immersivehotbar.option.use_animations_enabled": "Use / Durability Shrink",
+    "immersivehotbar.option.use_animations_enabled.desc": "Plays a small shrink animation when an item is used (durability decreases) or when a consumable stack decreases.",
+
+    "immersivehotbar.option.shrink_out_on_empty_enabled": "Shrink Out on Empty",
+    "immersivehotbar.option.shrink_out_on_empty_enabled.desc": "When an item leaves a slot (slot becomes empty), the previous item shrinks out smoothly instead of disappearing instantly.",
+
+    "immersivehotbar.option.offhand_animations_enabled": "Animate Offhand Slot",
+    "immersivehotbar.option.offhand_animations_enabled.desc": "Enables the same pop/use animation behavior for the offhand slot.",
+
+    "immersivehotbar.option.selector_scale_enabled": "Animate Selector Scale",
+    "immersivehotbar.option.selector_scale_enabled.desc": "Smoothly scales the selected-slot selector (the highlight behind the selected hotbar slot).",
+
+    "immersivehotbar.group.item_scaling": "Item Scaling",
+    "immersivehotbar.group.item_scaling.desc": "Configure the scaling and behavior of selected and unselected items.",
+
+    "immersivehotbar.group.background_style": "Background & Styling",
+    "immersivehotbar.group.background_style.desc": "Style your hotbar background and selection highlight.",
+
+    "immersivehotbar.group.bouncy_animation": "Bouncy Animation",
+    "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale."
+}

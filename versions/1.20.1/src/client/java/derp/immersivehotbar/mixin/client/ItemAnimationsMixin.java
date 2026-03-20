@@ -342,7 +342,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
             lastOffhandDamage = currentDamage;
         }
 
-        if (pickupAnimationsEnabled && changed && !suppressOffhandPickup && shouldAnimate) {
+        if (pickupAnimationsEnabled && changed && !suppressOffhandPickup) {
             immersive_hotbar$triggerOffhandAnimation(offhandIndex);
         }
 
@@ -363,7 +363,7 @@ public abstract class ItemAnimationsMixin implements InGameHudAnimationHandler {
         boolean itemChanged = !ItemStack.isSameItem(stack, lastSlotStacks[slotIndex]);
         boolean countIncreased = stack.getCount() > lastSlotCounts[slotIndex];
 
-        if (pickupAnimationsEnabled && shouldAnimateType) {
+        if (pickupAnimationsEnabled) {
             if (!stack.isEmpty() && (wasEmpty || ((itemChanged || countIncreased) && !suppressNextPickup[slotIndex]))) {
                 slotScales[slotIndex] = animationIntensity;
             }

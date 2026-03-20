@@ -17,7 +17,6 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
@@ -67,9 +66,9 @@ public class TooltipAnimationsMixin {
         }
     }
 
-    @Redirect(method = "tick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;getSelectedItem()Lnet/minecraft/world/item/ItemStack;"))
-    private ItemStack keepTooltipAliveWhenMovingToEmpty(Inventory inventory) {
-        ItemStack nextStack = inventory.getSelectedItem();
+    @WrapOperation(method = "tick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;getSelectedItem()Lnet/minecraft/world/item/ItemStack;"))
+    private ItemStack keepTooltipAliveWhenMovingToEmpty(Inventory inventory, Operation<ItemStack> original) {
+        ItemStack nextStack = original.call(inventory);
         if (!immersiveToolTip) return nextStack;
 
         boolean shouldStartEmptyFade = !emptyFadeArmed && emptyFadeTicksRemaining <= 0 && nextStack.isEmpty() && !cachedTooltipStack.isEmpty() && this.toolHighlightTimer > 0;
@@ -98,6 +97,12 @@ public class TooltipAnimationsMixin {
         lastRenderTime = currentTime;
 
         boolean realMainHandEmpty = minecraft.player == null || minecraft.player.getInventory().getSelectedItem().isEmpty();
+
+        if (realMainHandEmpty && !emptyFadeArmed && emptyFadeTicksRemaining <= 0 && !cachedTooltipStack.isEmpty() && (this.toolHighlightTimer > 0 || lastKnownFadeSeconds > 0f)) {
+            emptyFadeTicksRemaining = EMPTY_FADE_TICKS;
+            emptyFadeArmed = true;
+        }
+
         boolean doingEmptyFade = realMainHandEmpty && emptyFadeTicksRemaining > 0 && !cachedTooltipStack.isEmpty();
 
         if (doingEmptyFade) {
