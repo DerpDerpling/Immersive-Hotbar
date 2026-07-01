@@ -7,7 +7,6 @@ public class UIParticle {
     public float vx, vy;
     public float alpha = 1.0f;
 
-
     public float tintR = 1.0f;
     public float tintG = 1.0f;
     public float tintB = 1.0f;
@@ -20,10 +19,12 @@ public class UIParticle {
         this.vy = (float)(Math.random() - 1.2) * 2.2f;
     }
 
-    public boolean tick() {
-        x += vx;
-        y += vy;
-        vy += 0.02f;
+    public boolean tick(float dt) {
+        float step = dt * 10.0f;
+
+        x += vx * step;
+        y += vy * step;
+        vy += 0.02f * step;
 
         int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
         int height = Minecraft.getInstance().getWindow().getGuiScaledHeight();

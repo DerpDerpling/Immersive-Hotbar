@@ -1,0 +1,183 @@
+package derp.immersivehotbar.mixin.client;
+
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.FastColor;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
+import static derp.immersivehotbar.util.TooltipAnimationState.*;
+
+@Mixin(Gui.class)
+public class TooltipAnimationsMixin {
+    @Shadow @Final private Minecraft minecraft;
+    @Shadow private ItemStack lastToolHighlight;
+    @Shadow private int toolHighlightTimer;
+
+    @Unique private static final int EMPTY_FADE_TICKS = 4;
+
+    @Unique private long lastRenderTime = System.nanoTime();
+    @Unique private ItemStack cachedTooltipStack = ItemStack.EMPTY;
+    @Unique private int emptyFadeTicksRemaining = 0;
+    @Unique private boolean emptyFadeArmed = false;
+
+    @Unique private boolean spoofedThisCall = false;
+    @Unique private ItemStack realCurrentStack = ItemStack.EMPTY;
+    @Unique private int realHeldItemTooltipFade = 0;
+
+    @Inject(method = "tick()V", at = @At("HEAD"))
+    private void onTickHead(CallbackInfo ci) {
+        if (!immersiveToolTip || minecraft.player == null) return;
+
+        ItemStack realMainHand = minecraft.player.getInventory().getSelected();
+
+        if (!realMainHand.isEmpty()) {
+            cachedTooltipStack = realMainHand.copy();
+            emptyFadeArmed = false;
+        }
+
+        if (emptyFadeTicksRemaining > 0) {
+            if (realMainHand.isEmpty()) emptyFadeTicksRemaining--;
+            else emptyFadeTicksRemaining = 0;
+        }
+    }
+
+    @WrapOperation(method = "tick()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/player/Inventory;getSelected()Lnet/minecraft/world/item/ItemStack;"))
+    private ItemStack keepTooltipAliveWhenMovingToEmpty(Inventory inventory, Operation<ItemStack> original) {
+        ItemStack nextStack = original.call(inventory);
+        if (!immersiveToolTip) return nextStack;
+
+        boolean shouldStartEmptyFade = !emptyFadeArmed
+                && emptyFadeTicksRemaining <= 0
+                && nextStack.isEmpty()
+                && !cachedTooltipStack.isEmpty()
+                && this.toolHighlightTimer > 0;
+
+        if (shouldStartEmptyFade) {
+            emptyFadeTicksRemaining = EMPTY_FADE_TICKS;
+            emptyFadeArmed = true;
+        }
+
+        if (emptyFadeTicksRemaining > 0 && nextStack.isEmpty() && !cachedTooltipStack.isEmpty()) {
+            return cachedTooltipStack;
+        }
+
+        if (!nextStack.isEmpty()) cachedTooltipStack = nextStack.copy();
+        return nextStack;
+    }
+
+    @Inject(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;I)V", at = @At("HEAD"))
+    private void updateTooltipAnimationState(GuiGraphics context, int yShift, CallbackInfo ci) {
+        spoofedThisCall = false;
+        if (!immersiveToolTip) return;
+
+        long currentTime = System.nanoTime();
+        float deltaSeconds = (currentTime - lastRenderTime) / 1_000_000_000.0f;
+        deltaSeconds = Mth.clamp(deltaSeconds, 0f, 0.05f);
+        lastRenderTime = currentTime;
+
+        boolean realMainHandEmpty = minecraft.player == null || minecraft.player.getInventory().getSelected().isEmpty();
+
+        if (realMainHandEmpty && !emptyFadeArmed && emptyFadeTicksRemaining <= 0 && !cachedTooltipStack.isEmpty() && (this.toolHighlightTimer > 0 || lastKnownFadeSeconds > 0f)) {
+            emptyFadeTicksRemaining = EMPTY_FADE_TICKS;
+            emptyFadeArmed = true;
+        }
+
+        boolean doingEmptyFade = realMainHandEmpty && emptyFadeTicksRemaining > 0 && !cachedTooltipStack.isEmpty();
+
+        if (doingEmptyFade) {
+            realCurrentStack = this.lastToolHighlight;
+            realHeldItemTooltipFade = this.toolHighlightTimer;
+            this.lastToolHighlight = cachedTooltipStack;
+            this.toolHighlightTimer = emptyFadeTicksRemaining;
+            spoofedThisCall = true;
+        }
+
+        ItemStack actualStack = this.lastToolHighlight;
+        boolean isCurrentEmpty = actualStack.isEmpty();
+        boolean isHoldingItem = !isCurrentEmpty;
+        boolean stackChanged = !actualStack.isEmpty() && (!lastStack.is(actualStack.getItem()) || !ItemStack.isSameItem(lastStack, actualStack));
+
+        if (!isHoldingItem && toolHighlightTimer <= 0 && lastKnownFadeSeconds <= 0f) {
+            tooltipScale = 0f;
+            return;
+        }
+
+        if (!isCurrentEmpty && stackChanged) tooltipScale = 1.2f;
+        if (!isCurrentEmpty) lastStack = actualStack.copy();
+
+        if (toolHighlightTimer > 0) lastKnownFadeSeconds = toolHighlightTimer / 20.0f;
+        else if (lastKnownFadeSeconds > 0f) {
+            lastKnownFadeSeconds -= deltaSeconds;
+            if (lastKnownFadeSeconds < 0f) lastKnownFadeSeconds = 0f;
+        }
+
+        float fadeSeconds = lastKnownFadeSeconds;
+        if (fadeSeconds > 0f) {
+            float fadeRatio = Math.min(fadeSeconds / 0.2f, 1.0f);
+            float targetScale = 0.5f + (fadeRatio * 0.5f);
+            tooltipScale += (targetScale - tooltipScale) * (8.0f * deltaSeconds);
+            tooltipScale = Mth.clamp(tooltipScale, 0.0f, 1.5f);
+        } else {
+            tooltipScale += (0.0f - tooltipScale) * (10.0f * deltaSeconds);
+        }
+
+        if (lastKnownFadeSeconds <= 0f && tooltipScale <= 0.01f) {
+            tooltipScale = 0f;
+            if (realMainHandEmpty) cachedTooltipStack = ItemStack.EMPTY;
+        }
+    }
+
+    @WrapOperation(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawStringWithBackdrop(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;IIII)I"))
+    private int wrapTooltipDraw(GuiGraphics context, Font textRenderer, Component text, int x, int y, int width, int color, Operation<Integer> original) {
+        if (!immersiveToolTip || tooltipScale <= 0.01f) return original.call(context, textRenderer, text, x, y, width, color);
+        if (lastKnownFadeSeconds <= 0f) return original.call(context, textRenderer, text, x, y, width, color);
+
+        lastTooltipText = text;
+        lastTextWidth = width;
+
+        float fadeRatio = Math.min(lastKnownFadeSeconds / 0.2f, 1.0f);
+        int alpha = (int)(fadeRatio * 255);
+        if (fadeRatio < 0.1f) return 0;
+
+        int drawY = y;
+        if (tooltipYOffsetEnabled) {
+            int screenHeight = minecraft.getWindow().getGuiScaledHeight();
+            drawY = screenHeight - Math.round(tooltipYOffset * (screenHeight / 240f));
+            if (minecraft.gameMode != null && !minecraft.gameMode.canHurtPlayer()) drawY += 14;
+        }
+
+        PoseStack matrices = context.pose();
+        matrices.pushPose();
+        matrices.translate(x + width / 2.0f, drawY + 4, 0);
+        matrices.scale(tooltipScale, tooltipScale, 1.0f);
+        matrices.translate(-(x + width / 2.0f), -(drawY + 4), 0);
+
+        int result = original.call(context, textRenderer, text, x, drawY, width, FastColor.ARGB32.color(alpha, color));
+        matrices.popPose();
+        return result;
+    }
+
+    @Inject(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;I)V", at = @At("RETURN"))
+    private void restoreSpoofedTooltipState(GuiGraphics context, int yShift, CallbackInfo ci) {
+        if (!spoofedThisCall) return;
+        this.lastToolHighlight = realCurrentStack;
+        this.toolHighlightTimer = realHeldItemTooltipFade;
+        spoofedThisCall = false;
+    }
+}

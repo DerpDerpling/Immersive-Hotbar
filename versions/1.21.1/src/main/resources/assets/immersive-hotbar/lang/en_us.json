@@ -165,5 +165,29 @@
     "immersivehotbar.group.background_style.desc": "Style your hotbar background and selection highlight.",
 
     "immersivehotbar.group.bouncy_animation": "Bouncy Animation",
-    "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale."
+    "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale.",
+
+    "immersivehotbar.group.camera_sway": "Camera Sway",
+    "immersivehotbar.group.camera_sway.desc": "Makes the hotbar subtly react to camera movement.",
+
+    "immersivehotbar.option.camera_sway_enabled": "Enable Camera Sway",
+    "immersivehotbar.option.camera_sway_enabled.desc": "Allows the hotbar to subtly shift based on camera movement.",
+
+    "immersivehotbar.option.camera_sway_strength": "Horizontal Sway Strength",
+    "immersivehotbar.option.camera_sway_strength.desc": "Controls how much the hotbar moves left and right when turning the camera.",
+
+    "immersivehotbar.option.camera_sway_vertical_strength": "Vertical Sway Strength",
+    "immersivehotbar.option.camera_sway_vertical_strength.desc": "Controls how much the hotbar moves up and down when looking up or down.",
+
+    "immersivehotbar.option.camera_sway_max_x": "Max Horizontal Offset",
+    "immersivehotbar.option.camera_sway_max_x.desc": "Maximum horizontal distance the hotbar can sway.",
+
+    "immersivehotbar.option.camera_sway_max_y": "Max Vertical Offset",
+    "immersivehotbar.option.camera_sway_max_y.desc": "Maximum vertical distance the hotbar can sway.",
+
+    "immersivehotbar.option.camera_sway_responsiveness": "Sway Responsiveness",
+    "immersivehotbar.option.camera_sway_responsiveness.desc": "How quickly the hotbar follows camera movement.",
+
+    "immersivehotbar.option.camera_sway_return_speed": "Return Speed",
+    "immersivehotbar.option.camera_sway_return_speed.desc": "How quickly the hotbar settles back to center."
 }

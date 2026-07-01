@@ -12,6 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import org.objectweb.asm.Opcodes;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,6 +29,8 @@ import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 @Environment(EnvType.CLIENT)
 @Mixin(Gui.class)
 public class XPBarMixin {
+    @Shadow
+    private int tickCount;
     @Unique
     private final List<UIParticle> uiParticles = new ArrayList<>();
     @Unique
@@ -159,6 +162,10 @@ public class XPBarMixin {
                 if (Math.abs(deltaTotal) > 0.0001f) {
                     float speed = xpBarSpeed;
                     animatedXpTotal += deltaTotal * Math.min(speed * dt, 1f);
+
+                    if (Math.abs(targetTotal - animatedXpTotal) < 0.001f) {
+                        animatedXpTotal = targetTotal;
+                    }
                 }
                 animatedXpProgress = animatedXpTotal - (float) Math.floor(animatedXpTotal);
                 headTarget = animatedXpProgress;
@@ -290,7 +297,9 @@ public class XPBarMixin {
         while (iterator.hasNext()) {
             UIParticle p = iterator.next();
 
-            if (!p.tick()) {
+            float dt = tickCount;
+
+            if (!p.tick(dt)) {
                 iterator.remove();
                 continue;
             }

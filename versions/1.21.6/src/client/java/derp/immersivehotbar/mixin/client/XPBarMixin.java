@@ -157,6 +157,10 @@ public class XPBarMixin {
                 if (Math.abs(deltaTotal) > 0.0001f) {
                     float speed = xpBarSpeed;
                     animatedXpTotal += deltaTotal * Math.min(speed * dt, 1f);
+
+                    if (Math.abs(targetTotal - animatedXpTotal) < 0.001f) {
+                        animatedXpTotal = targetTotal;
+                    }
                 }
                 animatedXpProgress = animatedXpTotal - (float) Math.floor(animatedXpTotal);
                 headTarget = animatedXpProgress;
@@ -218,7 +222,7 @@ public class XPBarMixin {
             }
 
             if (xpFrontGlow > 0f) {
-                xpFrontGlow = Math.max(0f, xpFrontGlow - dt * xpGlowFadeSpeed);
+                xpFrontGlow = Math.max(0f, xpFrontGlow - dt * xpGlowFadeSpeed * 0.2f);
             }
         } else {
             xpFrontGlow = 0f;
@@ -252,8 +256,8 @@ public class XPBarMixin {
         Iterator<UIParticle> iterator = uiParticles.iterator();
         while (iterator.hasNext()) {
             UIParticle p = iterator.next();
-
-            if (!p.tick()) {
+            float dt = tickCounter.getGameTimeDeltaTicks();
+            if (!p.tick(dt)) {
                 iterator.remove();
                 continue;
             }

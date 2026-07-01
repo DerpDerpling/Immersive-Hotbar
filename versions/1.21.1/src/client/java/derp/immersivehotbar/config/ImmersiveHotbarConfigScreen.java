@@ -1,17 +1,50 @@
 package derp.immersivehotbar.config;
 
+import derp.immersivehotbar.config.preview.*;
 import dev.isxander.yacl3.api.*;
 import dev.isxander.yacl3.api.controller.*;
+import dev.isxander.yacl3.gui.image.ImageRenderer;
+
 import java.awt.*;
+
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 
 import derp.immersivehotbar.config.ImmersiveHotbarConfig.shouldShowBackground;
 
 public class ImmersiveHotbarConfigScreen {
+
+    private static final ItemAnimationPreviewState ITEM_PREVIEW_STATE = new ItemAnimationPreviewState();
+
+    private static final ItemAnimationPreview SELECTED_SCALE_PREVIEW =
+            new ItemAnimationPreview(ITEM_PREVIEW_STATE, PreviewMode.SELECTED_SCALE_COMPARISON);
+
+    private static final ItemAnimationPreview PICKUP_PREVIEW =
+            new ItemAnimationPreview(ITEM_PREVIEW_STATE, PreviewMode.PICKUP_POP);
+
+    private static final ItemAnimationPreview BOUNCY_PICKUP_PREVIEW =
+            new ItemAnimationPreview(ITEM_PREVIEW_STATE, PreviewMode.PICKUP_POP, true);
+
+    private static final ItemAnimationPreview USE_PREVIEW =
+            new ItemAnimationPreview(ITEM_PREVIEW_STATE, PreviewMode.USE_SHRINK);
+
+    private static final ItemAnimationPreview SHRINK_OUT_PREVIEW =
+            new ItemAnimationPreview(ITEM_PREVIEW_STATE, PreviewMode.SHRINK_OUT_ON_EMPTY);
+
+    private static final AnimatedTooltipPreview TOOLTIP_PREVIEW =
+            new AnimatedTooltipPreview();
+
+    private static final XPBarPreview XP_BAR_PREVIEW =
+            new XPBarPreview();
+
+    private static OptionDescription previewed(Component text, ImageRenderer preview) {
+        return OptionDescription.createBuilder()
+                .text(text)
+                .customImage(preview)
+                .build();
+    }
 
     private static void bindAvailability(Option<Boolean> controller, Option<?>... dependents) {
         boolean enabledInit = controller.pendingValue();
@@ -25,21 +58,32 @@ public class ImmersiveHotbarConfigScreen {
         });
     }
 
+    @SafeVarargs
+    private static void bindPreviewReset(Runnable reset, Option<?>... options) {
+        for (Option<?> option : options) {
+            option.addEventListener((opt, event) -> {
+                if (event == OptionEventListener.Event.STATE_CHANGE || event == OptionEventListener.Event.INITIAL) {
+                    reset.run();
+                }
+            });
+        }
+    }
+
     public static Screen create(Screen parent) {
         var builder = YetAnotherConfigLib.createBuilder()
                 .title(Component.translatable("immersivehotbar.title"));
 
-        //general category
+        // general category
         Option<Boolean> animatedXpBarOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.animated_xp_bar"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.animated_xp_bar.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.animated_xp_bar.desc"), XP_BAR_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> animatedXpBar, v -> animatedXpBar = v)
                 .build();
 
         Option<Float> xpBarSpeedOpt = Option.<Float>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_bar_speed"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_bar_speed.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_bar_speed.desc"), XP_BAR_PREVIEW))
                 .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 5.0f).step(0.1f))
                 .binding(1.0f, () -> xpBarSpeed, v -> xpBarSpeed = v)
                 .available(animatedXpBar)
@@ -74,17 +118,31 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> shouldGrowOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.should_grow"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.should_grow.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.should_grow.desc"), SELECTED_SCALE_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> shouldItemGrowWhenSelected, v -> shouldItemGrowWhenSelected = v)
                 .build();
 
         Option<Float> selectedScaleOpt = Option.<Float>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.selected_scale"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.selected_scale.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.selected_scale.desc"), SELECTED_SCALE_PREVIEW))
                 .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 2.0f).step(0.1f))
                 .binding(1.2f, () -> selectedItemSize, v -> selectedItemSize = v)
                 .available(shouldItemGrowWhenSelected)
+                .build();
+
+        Option<Float> unselectedScaleOpt = Option.<Float>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.unselected_scale"))
+                .description(previewed(Component.translatable("immersivehotbar.option.unselected_scale.desc"), SELECTED_SCALE_PREVIEW))
+                .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 1.0f).step(0.1f))
+                .binding(1.0f, () -> nonSelectedItemSize, v -> nonSelectedItemSize = v)
+                .build();
+
+        Option<Boolean> textScalingOpt = Option.<Boolean>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.text_scaling"))
+                .description(previewed(Component.translatable("immersivehotbar.option.text_scaling.desc"), SELECTED_SCALE_PREVIEW))
+                .controller(TickBoxControllerBuilder::create)
+                .binding(true, () -> textScales, v -> textScales = v)
                 .build();
 
         bindAvailability(shouldGrowOpt, selectedScaleOpt);
@@ -97,18 +155,8 @@ public class ImmersiveHotbarConfigScreen {
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.item_scaling.desc")))
                         .option(shouldGrowOpt)
                         .option(selectedScaleOpt)
-                        .option(Option.<Float>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.unselected_scale"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.unselected_scale.desc")))
-                                .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 1.0f).step(0.1f))
-                                .binding(1.0f, () -> nonSelectedItemSize, v -> nonSelectedItemSize = v)
-                                .build())
-                        .option(Option.<Boolean>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.text_scaling"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.text_scaling.desc")))
-                                .controller(TickBoxControllerBuilder::create)
-                                .binding(true, () -> textScales, v -> textScales = v)
-                                .build())
+                        .option(unselectedScaleOpt)
+                        .option(textScalingOpt)
                         .build())
 
                 .group(OptionGroup.createBuilder()
@@ -116,7 +164,7 @@ public class ImmersiveHotbarConfigScreen {
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.tooltip.desc")))
                         .option(Option.<Boolean>createBuilder()
                                 .name(Component.translatable("immersivehotbar.option.tooltip_animation"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.tooltip_animation.desc")))
+                                .description(previewed(Component.translatable("immersivehotbar.option.tooltip_animation.desc"), TOOLTIP_PREVIEW))
                                 .controller(TickBoxControllerBuilder::create)
                                 .binding(true, () -> immersiveToolTip, v -> immersiveToolTip = v)
                                 .build())
@@ -144,17 +192,17 @@ public class ImmersiveHotbarConfigScreen {
 
                 .build());
 
-        //animations category
+        // animations category
         Option<Boolean> hotbarItemAnimationsEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.hotbar_item_animations_enabled"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.hotbar_item_animations_enabled.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.hotbar_item_animations_enabled.desc"), PICKUP_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> hotbarItemAnimationsEnabled, v -> hotbarItemAnimationsEnabled = v)
                 .build();
 
         Option<Boolean> disableHotbarItemBobbingOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.disable_hotbar_item_bobbing"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.disable_hotbar_item_bobbing.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.disable_hotbar_item_bobbing.desc"), PICKUP_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(false, () -> vanillaItemBobbing, v -> vanillaItemBobbing = v)
                 .available(hotbarItemAnimationsEnabled)
@@ -162,7 +210,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> pickupAnimationsEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.pickup_animations_enabled"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.pickup_animations_enabled.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.pickup_animations_enabled.desc"), PICKUP_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> pickupAnimationsEnabled, v -> pickupAnimationsEnabled = v)
                 .available(hotbarItemAnimationsEnabled)
@@ -170,7 +218,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> useAnimationsEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.use_animations_enabled"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.use_animations_enabled.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.use_animations_enabled.desc"), USE_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> useAnimationsEnabled, v -> useAnimationsEnabled = v)
                 .available(hotbarItemAnimationsEnabled)
@@ -178,7 +226,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> shrinkOutOnEmptyEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.shrink_out_on_empty_enabled"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.shrink_out_on_empty_enabled.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.shrink_out_on_empty_enabled.desc"), SHRINK_OUT_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> shrinkOutOnEmptyEnabled, v -> shrinkOutOnEmptyEnabled = v)
                 .available(hotbarItemAnimationsEnabled)
@@ -199,6 +247,7 @@ public class ImmersiveHotbarConfigScreen {
                 .binding(true, () -> selectorScaleEnabled, v -> selectorScaleEnabled = v)
                 .available(hotbarItemAnimationsEnabled)
                 .build();
+
         bindAvailability(
                 hotbarItemAnimationsEnabledOpt,
                 disableHotbarItemBobbingOpt,
@@ -211,17 +260,14 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> bouncyEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.bouncy_animation"))
-                .description(OptionDescription.createBuilder()
-                        .text(Component.translatable("immersivehotbar.option.bouncy_animation.desc"))
-                        .webpImage(ResourceLocation.fromNamespaceAndPath("immersive-hotbar", "textures/gui/bouncy_animation.webp"))
-                        .build())
+                .description(previewed(Component.translatable("immersivehotbar.option.bouncy_animation.desc"), BOUNCY_PICKUP_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(false, () -> bouncyAnimation, v -> bouncyAnimation = v)
                 .build();
 
         Option<Float> bounceStiffnessOpt = Option.<Float>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.bounce_stiffness"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.bounce_stiffness.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.bounce_stiffness.desc"), BOUNCY_PICKUP_PREVIEW))
                 .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 1f).step(0.1f))
                 .binding(0.3f, () -> bouncyStiffness, v -> bouncyStiffness = v)
                 .available(bouncyAnimation)
@@ -229,7 +275,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Float> bounceDampingOpt = Option.<Float>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.bounce_damping"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.bounce_damping.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.bounce_damping.desc"), BOUNCY_PICKUP_PREVIEW))
                 .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 0.8f).step(0.1f))
                 .binding(0.2f, () -> bouncyDamping, v -> bouncyDamping = v)
                 .available(bouncyAnimation)
@@ -253,10 +299,143 @@ public class ImmersiveHotbarConfigScreen {
 
         bindAvailability(bouncyEnabledOpt, bounceStiffnessOpt, bounceDampingOpt, toolsIgnoreBounceOpt, weaponsIgnoreBounceOpt);
 
+        Option<Boolean> toolAnimatesOpt = Option.<Boolean>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.tool_animates"))
+                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.tool_animates.desc")))
+                .controller(TickBoxControllerBuilder::create)
+                .binding(false, () -> toolAnimates, v -> toolAnimates = v)
+                .build();
+
+        Option<Boolean> weaponAnimatesOpt = Option.<Boolean>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.weapon_animates"))
+                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.weapon_animates.desc")))
+                .controller(TickBoxControllerBuilder::create)
+                .binding(false, () -> weaponAnimates, v -> weaponAnimates = v)
+                .build();
+
+        Option<Boolean> durabilityAnimatesOpt = Option.<Boolean>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.durability_animates"))
+                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.durability_animates.desc")))
+                .controller(TickBoxControllerBuilder::create)
+                .binding(true, () -> durabilityAnimates, v -> durabilityAnimates = v)
+                .build();
+
+        Option<Boolean> foodAnimatesOpt = Option.<Boolean>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.food_animates"))
+                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.food_animates.desc")))
+                .controller(TickBoxControllerBuilder::create)
+                .binding(true, () -> foodAnimates, v -> foodAnimates = v)
+                .build();
+
+        Option<Float> animationIntensityOpt = Option.<Float>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.pop_scale"))
+                .description(previewed(Component.translatable("immersivehotbar.option.pop_scale.desc"), PICKUP_PREVIEW))
+                .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 0.9f).step(0.1f))
+                .binding(0.5f, () -> animationIntensity, v -> animationIntensity = v)
+                .build();
+
+        Option<Float> animationSpeedOpt = Option.<Float>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.animation_smoothness"))
+                .description(previewed(Component.translatable("immersivehotbar.option.animation_smoothness.desc"), PICKUP_PREVIEW))
+                .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 1.0f).step(0.1f))
+                .binding(0.1f, () -> animationSpeed, v -> animationSpeed = v)
+                .build();
+
+        Option<Float> shrinkSpeedOpt = Option.<Float>createBuilder()
+                .name(Component.translatable("immersivehotbar.option.shrink_speed"))
+                .description(previewed(Component.translatable("immersivehotbar.option.shrink_speed.desc"), SHRINK_OUT_PREVIEW))
+                .controller(o -> FloatSliderControllerBuilder.create(o).range(1f, 5.0f).step(0.1f))
+                .binding(2.5f, () -> shrinkAnimationSpeed, v -> shrinkAnimationSpeed = v)
+                .build();
+
+        ITEM_PREVIEW_STATE.shouldGrowOpt = shouldGrowOpt;
+        ITEM_PREVIEW_STATE.selectedScaleOpt = selectedScaleOpt;
+        ITEM_PREVIEW_STATE.unselectedScaleOpt = unselectedScaleOpt;
+        ITEM_PREVIEW_STATE.textScalingOpt = textScalingOpt;
+
+        ITEM_PREVIEW_STATE.bouncyEnabledOpt = bouncyEnabledOpt;
+        ITEM_PREVIEW_STATE.bounceStiffnessOpt = bounceStiffnessOpt;
+        ITEM_PREVIEW_STATE.bounceDampingOpt = bounceDampingOpt;
+
+        ITEM_PREVIEW_STATE.animationIntensityOpt = animationIntensityOpt;
+        ITEM_PREVIEW_STATE.animationSpeedOpt = animationSpeedOpt;
+        ITEM_PREVIEW_STATE.shrinkSpeedOpt = shrinkSpeedOpt;
+
+        ITEM_PREVIEW_STATE.pickupAnimationsEnabledOpt = pickupAnimationsEnabledOpt;
+        ITEM_PREVIEW_STATE.useAnimationsEnabledOpt = useAnimationsEnabledOpt;
+        ITEM_PREVIEW_STATE.shrinkOutOnEmptyEnabledOpt = shrinkOutOnEmptyEnabledOpt;
+        ITEM_PREVIEW_STATE.selectorScaleEnabledOpt = selectorScaleEnabledOpt;
+
+        ITEM_PREVIEW_STATE.toolAnimatesOpt = toolAnimatesOpt;
+        ITEM_PREVIEW_STATE.weaponAnimatesOpt = weaponAnimatesOpt;
+        ITEM_PREVIEW_STATE.durabilityAnimatesOpt = durabilityAnimatesOpt;
+        ITEM_PREVIEW_STATE.foodAnimatesOpt = foodAnimatesOpt;
+        ITEM_PREVIEW_STATE.vanillaItemBobbingOpt = disableHotbarItemBobbingOpt;
+
+
+        bindPreviewReset(
+                PICKUP_PREVIEW::reset,
+                hotbarItemAnimationsEnabledOpt,
+                pickupAnimationsEnabledOpt,
+                shouldGrowOpt,
+                selectedScaleOpt,
+                unselectedScaleOpt,
+                textScalingOpt,
+                animationIntensityOpt,
+                animationSpeedOpt,
+                bouncyEnabledOpt,
+                bounceStiffnessOpt,
+                bounceDampingOpt
+        );
+
+        bindPreviewReset(
+                BOUNCY_PICKUP_PREVIEW::reset,
+                bouncyEnabledOpt,
+                bounceStiffnessOpt,
+                bounceDampingOpt,
+                shouldGrowOpt,
+                selectedScaleOpt,
+                unselectedScaleOpt,
+                textScalingOpt,
+                animationIntensityOpt,
+                animationSpeedOpt
+        );
+
+        bindPreviewReset(
+                USE_PREVIEW::reset,
+                hotbarItemAnimationsEnabledOpt,
+                useAnimationsEnabledOpt,
+                durabilityAnimatesOpt,
+                toolAnimatesOpt,
+                weaponAnimatesOpt,
+                foodAnimatesOpt,
+                shouldGrowOpt,
+                selectedScaleOpt,
+                unselectedScaleOpt,
+                textScalingOpt,
+                animationSpeedOpt,
+                bouncyEnabledOpt,
+                bounceStiffnessOpt,
+                bounceDampingOpt
+        );
+
+        bindPreviewReset(
+                SHRINK_OUT_PREVIEW::reset,
+                hotbarItemAnimationsEnabledOpt,
+                shrinkOutOnEmptyEnabledOpt,
+                shrinkSpeedOpt,
+                shouldGrowOpt,
+                selectedScaleOpt,
+                unselectedScaleOpt,
+                textScalingOpt,
+                bouncyEnabledOpt,
+                bounceStiffnessOpt,
+                bounceDampingOpt
+        );
+
         builder.category(ConfigCategory.createBuilder()
                 .name(Component.translatable("immersivehotbar.category.animations"))
                 .tooltip(Component.translatable("immersivehotbar.tooltip.animations"))
-
 
                 .group(OptionGroup.createBuilder()
                         .name(Component.translatable("immersivehotbar.group.item_animations"))
@@ -270,57 +449,21 @@ public class ImmersiveHotbarConfigScreen {
                         .option(selectorScaleEnabledOpt)
                         .build())
 
-
                 .group(OptionGroup.createBuilder()
                         .name(Component.translatable("immersivehotbar.group.animation_triggers"))
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.animation_triggers.desc")))
-                        .option(Option.<Boolean>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.tool_animates"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.tool_animates.desc")))
-                                .controller(TickBoxControllerBuilder::create)
-                                .binding(false, () -> toolAnimates, v -> toolAnimates = v)
-                                .build())
-                        .option(Option.<Boolean>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.weapon_animates"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.weapon_animates.desc")))
-                                .controller(TickBoxControllerBuilder::create)
-                                .binding(false, () -> weaponAnimates, v -> weaponAnimates = v)
-                                .build())
-                        .option(Option.<Boolean>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.durability_animates"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.durability_animates.desc")))
-                                .controller(TickBoxControllerBuilder::create)
-                                .binding(true, () -> durabilityAnimates, v -> durabilityAnimates = v)
-                                .build())
-                        .option(Option.<Boolean>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.food_animates"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.food_animates.desc")))
-                                .controller(TickBoxControllerBuilder::create)
-                                .binding(true, () -> foodAnimates, v -> foodAnimates = v)
-                                .build())
+                        .option(toolAnimatesOpt)
+                        .option(weaponAnimatesOpt)
+                        .option(durabilityAnimatesOpt)
+                        .option(foodAnimatesOpt)
                         .build())
 
                 .group(OptionGroup.createBuilder()
                         .name(Component.translatable("immersivehotbar.group.animation_feel"))
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.animation_feel.desc")))
-                        .option(Option.<Float>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.pop_scale"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.pop_scale.desc")))
-                                .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 0.9f).step(0.1f))
-                                .binding(0.5f, () -> animationIntensity, v -> animationIntensity = v)
-                                .build())
-                        .option(Option.<Float>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.animation_smoothness"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.animation_smoothness.desc")))
-                                .controller(o -> FloatSliderControllerBuilder.create(o).range(0.1f, 1.0f).step(0.1f))
-                                .binding(0.1f, () -> animationSpeed, v -> animationSpeed = v)
-                                .build())
-                        .option(Option.<Float>createBuilder()
-                                .name(Component.translatable("immersivehotbar.option.shrink_speed"))
-                                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.shrink_speed.desc")))
-                                .controller(o -> FloatSliderControllerBuilder.create(o).range(1f, 5.0f).step(0.1f))
-                                .binding(2.5f, () -> shrinkAnimationSpeed, v -> shrinkAnimationSpeed = v)
-                                .build())
+                        .option(animationIntensityOpt)
+                        .option(animationSpeedOpt)
+                        .option(shrinkSpeedOpt)
                         .build())
 
                 .group(OptionGroup.createBuilder()
@@ -335,7 +478,7 @@ public class ImmersiveHotbarConfigScreen {
 
                 .build());
 
-        //effects category
+        // effects category
         Option<Boolean> durabilityGlowEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.durability_glow"))
                 .description(OptionDescription.of(Component.translatable("immersivehotbar.option.durability_glow.desc")))
@@ -355,21 +498,21 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> xpGlowEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_glow_enabled"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_glow_enabled.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_glow_enabled.desc"), XP_BAR_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> xpGlowEnabled, v -> xpGlowEnabled = v)
                 .build();
 
         Option<Boolean> xpTextPulseOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_text_pulse"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_text_pulse.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_text_pulse.desc"), XP_BAR_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> xpTextPulseEnabled, v -> xpTextPulseEnabled = v)
                 .build();
 
         Option<Color> xpGlowColorOpt = Option.<Color>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_glow_color"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_glow_color.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_glow_color.desc"), XP_BAR_PREVIEW))
                 .controller(o -> ColorControllerBuilder.create(o).allowAlpha(true))
                 .binding(new Color(255, 255, 85, 255), () -> xpGlowColor, v -> xpGlowColor = v)
                 .available(xpGlowEnabled)
@@ -377,7 +520,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Float> xpGlowFadeSpeedOpt = Option.<Float>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_glow_fade_speed"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_glow_fade_speed.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_glow_fade_speed.desc"), XP_BAR_PREVIEW))
                 .controller(o -> FloatSliderControllerBuilder.create(o).range(0.02f, 0.40f).step(0.01f))
                 .binding(0.12f, () -> xpGlowFadeSpeed, v -> xpGlowFadeSpeed = v)
                 .available(xpGlowEnabled)
@@ -385,7 +528,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Float> xpGlowBoostOpt = Option.<Float>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_glow_boost_on_gain"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_glow_boost_on_gain.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_glow_boost_on_gain.desc"), XP_BAR_PREVIEW))
                 .controller(o -> FloatSliderControllerBuilder.create(o).range(0.05f, 1.00f).step(0.05f))
                 .binding(0.35f, () -> xpGlowBoostOnGain, v -> xpGlowBoostOnGain = v)
                 .available(xpGlowEnabled)
@@ -393,7 +536,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Integer> xpGlowTailPxOpt = Option.<Integer>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_glow_tail_px"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_glow_tail_px.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_glow_tail_px.desc"), XP_BAR_PREVIEW))
                 .controller(o -> IntegerSliderControllerBuilder.create(o).range(0, 60).step(1))
                 .binding(18, () -> glowTailPx, v -> glowTailPx = v)
                 .available(xpGlowEnabled)
@@ -401,7 +544,7 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Integer> xpGlowTailStripsOpt = Option.<Integer>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_glow_tail_strips"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_glow_tail_strips.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_glow_tail_strips.desc"), XP_BAR_PREVIEW))
                 .controller(o -> IntegerSliderControllerBuilder.create(o).range(1, 16).step(1))
                 .binding(6, () -> glowTailStrips, v -> glowTailStrips = v)
                 .available(xpGlowEnabled)
@@ -411,14 +554,14 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Boolean> xpParticlesEnabledOpt = Option.<Boolean>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_levelup_particles"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_levelup_particles.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_levelup_particles.desc"), XP_BAR_PREVIEW))
                 .controller(TickBoxControllerBuilder::create)
                 .binding(true, () -> xpLevelUpParticlesEnabled, v -> xpLevelUpParticlesEnabled = v)
                 .build();
 
         Option<Color> xpParticlesColorOpt = Option.<Color>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_levelup_particles_color"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_levelup_particles_color.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_levelup_particles_color.desc"), XP_BAR_PREVIEW))
                 .controller(o -> ColorControllerBuilder.create(o).allowAlpha(true))
                 .binding(new Color(255, 255, 85, 255), () -> xpLevelUpParticleColor, v -> xpLevelUpParticleColor = v)
                 .available(xpLevelUpParticlesEnabled)
@@ -426,13 +569,28 @@ public class ImmersiveHotbarConfigScreen {
 
         Option<Integer> xpParticlesEveryOpt = Option.<Integer>createBuilder()
                 .name(Component.translatable("immersivehotbar.option.xp_levelup_particles_every"))
-                .description(OptionDescription.of(Component.translatable("immersivehotbar.option.xp_levelup_particles_every.desc")))
+                .description(previewed(Component.translatable("immersivehotbar.option.xp_levelup_particles_every.desc"), XP_BAR_PREVIEW))
                 .controller(o -> IntegerSliderControllerBuilder.create(o).range(1, 30).step(1))
                 .binding(5, () -> xpLevelUpParticleLevels, v -> xpLevelUpParticleLevels = v)
                 .available(xpLevelUpParticlesEnabled)
                 .build();
 
         bindAvailability(xpParticlesEnabledOpt, xpParticlesColorOpt, xpParticlesEveryOpt);
+        bindPreviewReset(
+                XP_BAR_PREVIEW::reset,
+                animatedXpBarOpt,
+                xpBarSpeedOpt,
+                xpTextPulseOpt,
+                xpGlowEnabledOpt,
+                xpGlowColorOpt,
+                xpGlowFadeSpeedOpt,
+                xpGlowBoostOpt,
+                xpGlowTailPxOpt,
+                xpGlowTailStripsOpt,
+                xpParticlesEnabledOpt,
+                xpParticlesColorOpt,
+                xpParticlesEveryOpt
+        );
 
         builder.category(ConfigCategory.createBuilder()
                 .name(Component.translatable("immersivehotbar.category.effects"))
@@ -444,6 +602,7 @@ public class ImmersiveHotbarConfigScreen {
                         .option(durabilityGlowEnabledOpt)
                         .option(durabilityGlowThresholdOpt)
                         .build())
+
                 .group(OptionGroup.createBuilder()
                         .name(Component.translatable("immersivehotbar.group.xp_bar"))
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.xp_bar.desc")))
@@ -451,6 +610,7 @@ public class ImmersiveHotbarConfigScreen {
                         .option(xpBarSpeedOpt)
                         .option(xpTextPulseOpt)
                         .build())
+
                 .group(OptionGroup.createBuilder()
                         .name(Component.translatable("immersivehotbar.group.xp_glow"))
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.xp_glow.desc")))
@@ -461,6 +621,7 @@ public class ImmersiveHotbarConfigScreen {
                         .option(xpGlowTailPxOpt)
                         .option(xpGlowTailStripsOpt)
                         .build())
+
                 .group(OptionGroup.createBuilder()
                         .name(Component.translatable("immersivehotbar.group.xp_particles"))
                         .description(OptionDescription.of(Component.translatable("immersivehotbar.group.xp_particles.desc")))

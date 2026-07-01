@@ -8,15 +8,24 @@ pluginManagement {
 		gradlePluginPortal()
 	}
 }
+
 plugins {
 	id "dev.kikugie.stonecutter" version "0.5.2"
 }
+
 stonecutter {
 	create(rootProject) {
-		versions "1.20.1", "1.21.1", "1.21.2", "1.21.5", "1.21.6", "1.21.9"
+		versions "1.20.1", "1.21.1", "1.21.2", "1.21.5", "1.21.6", "1.21.9", "26.1", "26.2"
 		vcsVersion = "1.21.1"
 	}
 }
 
+project(":26.1").projectDir = file("versions/26.1")
+project(":26.1").buildFileName = "build.gradle"
+project(":26.2").projectDir = file("versions/26.2")
+project(":26.2").buildFileName = "build.gradle"
+
 include("neoforge:1.21.9")
 project(":neoforge:1.21.9").projectDir = file("neoforge/1.21.9")
+include("neoforge:1.21.1")
+project(":neoforge:1.21.1").projectDir = file("neoforge/1.21.1")

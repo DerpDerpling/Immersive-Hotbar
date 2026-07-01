@@ -177,6 +177,10 @@ public class XPBarMixin {
                 if (Math.abs(deltaTotal) > 0.0001f) {
                     float speed = xpBarSpeed;
                     animatedXpTotal += deltaTotal * Math.min(speed * dt, 1f);
+
+                    if (Math.abs(targetTotal - animatedXpTotal) < 0.001f) {
+                        animatedXpTotal = targetTotal;
+                    }
                 }
                 animatedXpProgress = animatedXpTotal - (float) Math.floor(animatedXpTotal);
                 headTarget = animatedXpProgress;
@@ -310,7 +314,9 @@ public class XPBarMixin {
         while (iterator.hasNext()) {
             UIParticle p = iterator.next();
 
-            if (!p.tick()) {
+            float dt = Minecraft.getInstance().getTimer().getGameTimeDeltaTicks();
+
+            if (!p.tick(dt)) {
                 iterator.remove();
                 continue;
             }

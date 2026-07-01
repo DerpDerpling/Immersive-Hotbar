@@ -1,4 +1,7 @@
-- Added neoforge version (still in beta and still has template stuff everywhere lol)
-- fixed a crash involving Noxesium where the tooltip was being redirected instead of wrapped
-- fixed an issue with the tooltip blinking for a frame when dropping an item with the tooltip visible
-- fixed an issue with item pickup animations not applying to tools when toolsanimate was disabled
+- Added live config previews for some config options to better showcase what the options do
+- Fixed a bug with the XP bar where on rare occasions on levelup it wouldnt clear the bar (Fixes [#23](https://github.com/DerpDerpling/Immersive-Hotbar/issues/23))
+- Fixed xp levelup particles being tied to FPS (Fixes [#24](https://github.com/DerpDerpling/Immersive-Hotbar/issues/24))
+- Port to 26.2
+- Bump version to 1.1.2
+- Bump neoforge versions to 1.1.2
+- Reduce file size of the mod from ~220kb to ~80kb by relying on live previews in config rather than a gif

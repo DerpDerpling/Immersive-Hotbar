@@ -1,7 +1,8 @@
 plugins {
-	id 'fabric-loom' version '1.13-SNAPSHOT'
+	id 'fabric-loom' version '1.15-SNAPSHOT'
 	id 'maven-publish'
 	id 'com.modrinth.minotaur' version '2.9.0'
+	id 'net.darkhax.curseforgegradle' version '1.1.28'
 }
 
 version = project.mod_version
@@ -64,19 +65,20 @@ processResources {
 	}
 }
 
+def isMc26 = project.minecraft_version.startsWith("26.")
 def isModernMc = stonecutter.eval(project.minecraft_version, ">=1.20.5")
 
 java {
-	sourceCompatibility = isModernMc ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
-	targetCompatibility = isModernMc ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17
+	sourceCompatibility = isMc26 ? JavaVersion.VERSION_25 : (isModernMc ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17)
+	targetCompatibility = isMc26 ? JavaVersion.VERSION_25 : (isModernMc ? JavaVersion.VERSION_21 : JavaVersion.VERSION_17)
 
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(isModernMc ? 21 : 17)
+		languageVersion = JavaLanguageVersion.of(isMc26 ? 25 : (isModernMc ? 21 : 17))
 	}
 }
 
 tasks.withType(JavaCompile).configureEach {
-	options.release = isModernMc ? 21 : 17
+	options.release = isMc26 ? 25 : (isModernMc ? 21 : 17)
 }
 
 jar {
@@ -142,18 +144,44 @@ tasks.modrinth {
 	}
 }
 
+tasks.register("curseforgeUpload", net.darkhax.curseforgegradle.TaskPublishCurseForge) {
+	group = "publishing"
+	description = "Uploads the mod to CurseForge."
+	dependsOn tasks.remapJar
+
+	apiToken = System.getenv("CURSEFORGE_TOKEN") ?: findProperty("curseforge_token")
+
+	def mainFile = upload("1238099", tasks.remapJar)
+
+	mainFile.displayName = "${project.archives_base_name} ${project.version}"
+	mainFile.changelog = changelogText
+	mainFile.changelogType = "markdown"
+	mainFile.releaseType = "release"
+
+	disableVersionDetection()
+	mainFile.addGameVersion(*supportedVersions)
+
+	mainFile.addModLoader("Fabric")
+	mainFile.addEnvironment("Client")
+
+	// Optional dependency relations, if you want them later:
+	// mainFile.addRequirement("fabric-api")
+	// mainFile.addRequirement("yet-another-config-lib-yacl")
+	// mainFile.addOptional("modmenu")
+}
+
 def parseMcVersion = { String v ->
 	v.tokenize('.').collect { it as int }
 }
 
-tasks.register("publishModrinthBuild") {
+tasks.register("publishModrinth") {
 	group = "publishing"
 
 	if (project == rootProject && !subprojects.isEmpty()) {
-		description = "Builds and uploads all subprojects to Modrinth"
+		description = "Builds and uploads all subprojects to Modrinth in version order."
 
 		def publishTasks = subprojects
-				.findAll { it.tasks.findByName("publishModrinthBuild") != null && it.hasProperty("minecraft_version") }
+				.findAll { it.tasks.findByName("publishModrinth") != null && it.hasProperty("minecraft_version") }
 				.sort { a, b ->
 					def av = parseMcVersion(a.property("minecraft_version").toString())
 					def bv = parseMcVersion(b.property("minecraft_version").toString())
@@ -165,7 +193,7 @@ tasks.register("publishModrinthBuild") {
 					}
 					return 0
 				}
-				.collect { it.tasks.named("publishModrinthBuild") }
+				.collect { it.tasks.named("publishModrinth") }
 
 		for (int i = 1; i < publishTasks.size(); i++) {
 			publishTasks[i].configure {
@@ -185,5 +213,47 @@ tasks.register("publishModrinthBuild") {
 	} else {
 		description = "Builds and uploads the mod to Modrinth."
 		dependsOn tasks.build, tasks.modrinth
+	}
+}
+
+tasks.register("publishCurseForge") {
+	group = "publishing"
+
+	if (project == rootProject && !subprojects.isEmpty()) {
+		description = "Builds and uploads all subprojects to CurseForge in version order."
+
+		def publishTasks = subprojects
+				.findAll { it.tasks.findByName("publishCurseForge") != null && it.hasProperty("minecraft_version") }
+				.sort { a, b ->
+					def av = parseMcVersion(a.property("minecraft_version").toString())
+					def bv = parseMcVersion(b.property("minecraft_version").toString())
+
+					for (int i = 0; i < Math.max(av.size(), bv.size()); i++) {
+						def ai = i < av.size() ? av[i] : 0
+						def bi = i < bv.size() ? bv[i] : 0
+						if (ai != bi) return ai <=> bi
+					}
+					return 0
+				}
+				.collect { it.tasks.named("publishCurseForge") }
+
+		for (int i = 1; i < publishTasks.size(); i++) {
+			publishTasks[i].configure {
+				mustRunAfter(publishTasks[i - 1])
+			}
+		}
+
+		dependsOn publishTasks
+
+		doFirst {
+			println "Publishing all CurseForge versions:"
+			publishTasks.each { t ->
+				def p = t.get().project
+				println " - ${p.path} (${p.property("minecraft_version")})"
+			}
+		}
+	} else {
+		description = "Builds and uploads the mod to CurseForge."
+		dependsOn tasks.build, tasks.curseforgeUpload
 	}
 }
