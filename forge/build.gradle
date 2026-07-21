@@ -1,0 +1,82 @@
+buildscript {
+    repositories {
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+    }
+    dependencies {
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+buildscript {
+    repositories {
+        maven { url = 'https://maven.minecraftforge.net/' }
+        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath group: 'net.minecraftforge.gradle',
+                name: 'ForgeGradle',
+                version: '6.0.+',
+                changing: true
+
+        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle'
+apply plugin: 'org.spongepowered.mixin'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'maven-publish'
+
+version = mod_version
+group = mod_group_id
+base { archivesName = mod_id }
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+    copyIdeResources = true
+    runs {
+        client {
+            workingDirectory project.file('run')
+            property 'forge.logging.console.level', 'debug'
+            mods { immersivehotbar { source sourceSets.main } }
+        }
+    }
+}
+
+repositories {
+    maven { name = 'Xander Maven'; url = 'https://maven.isxander.dev/releases' }
+    maven { url = 'https://thedarkcolour.github.io/KotlinForForge/'}
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+    implementation fg.deobf('dev.isxander:yet-another-config-lib:3.6.0+1.20.1-forge')
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.4.1"))
+
+    implementation(jarJar("io.github.llamalad7:mixinextras-forge:0.4.1")) {
+        jarJar.ranged(it, "[0.4.1,)")
+    }
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+
+}
+
+mixin {
+    add sourceSets.main, 'immersive-hotbar.refmap.json'
+    config 'immersive-hotbar.client.mixins.json'
+}
+
+processResources {
+    def props = [mod_id: mod_id, mod_name: mod_name, mod_license: mod_license,
+                 mod_version: mod_version, mod_authors: mod_authors,
+                 mod_description: mod_description]
+    inputs.properties props
+    filesMatching('META-INF/mods.toml') { expand props }
+}
+
+jar {
+    manifest { attributes('MixinConfigs': 'immersive-hotbar.client.mixins.json') }
+    finalizedBy 'reobfJar'
+}
