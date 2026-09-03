@@ -1,17 +1,17 @@
 {
     "immersivehotbar.title": "Immersive Hotbar Config",
 
-    "immersivehotbar.option.tooltip_animation": "Animated Tooltip (Unavailable)",
-    "immersivehotbar.option.tooltip_animation.desc": "§c§lThis feature is temporarily unavailable on Forge and will be re-enabled in a future update.§r\n\nOnce re-enabled, the selected item tooltip will animate when switching items.",
+    "immersivehotbar.option.tooltip_animation": "Animated Tooltip",
+    "immersivehotbar.option.tooltip_animation.desc": "If enabled, the item tooltip will animate when selecting items.",
 
     "immersivehotbar.option.tooltip_y_offset_toggle": "Toggle Tooltip Y Offset",
-    "immersivehotbar.option.tooltip_y_offset_toggle.desc": "§c§lThis option depends on Animated Tooltip, which is temporarily unavailable on Forge.§r\n\nDisables the Y Offest value if configured. Turn this on if you want to change the offset of the tooltip.",
+    "immersivehotbar.option.tooltip_y_offset_toggle.desc": "Disables the Y Offest value if configured. Turn this on if you want to change the offset of the tooltip.",
 
     "immersivehotbar.option.tooltip_y_offset": "Tooltip Y Offset",
-    "immersivehotbar.option.tooltip_y_offset.desc": "§c§lThis option depends on Animated Tooltip, which is temporarily unavailable on Forge.§r\n\nAdjust the vertical position of the tooltip. \n\n(Vanilla is 52). \n\nOnly works if 'Toggle Tooltip Y Offset' is enabled.",
+    "immersivehotbar.option.tooltip_y_offset.desc": "Adjust the vertical position of the tooltip. \n\n(Vanilla is 52). \n\nOnly works if 'Toggle Tooltip Y Offset' is enabled.",
 
     "immersivehotbar.option.scale_tooltip_offset": "Scale Tooltip Y Offset",
-    "immersivehotbar.option.scale_tooltip_offset.desc": "§c§lThis option depends on Animated Tooltip, which is temporarily unavailable on Forge.§r\n\nWhether the tooltip offset should scale with resolution and GUI size. \n\nRecommended for consistent placement across fullscreen and windowed modes.\n\nIf this option is turned off and the tooltip scale is set too high/low, the tooltip may render off screen and will no longer be visible.",
+    "immersivehotbar.option.scale_tooltip_offset.desc": "Whether the tooltip offset should scale with resolution and GUI size. \n\nRecommended for consistent placement across fullscreen and windowed modes.\n\nIf this option is turned off and the tooltip scale is set too high/low, the tooltip may render off screen and will no longer be visible.",
 
     "immersivehotbar.option.food_animates": "Food Animates",
     "immersivehotbar.option.food_animates.desc": "If enabled, food items animate while eating.",
@@ -107,6 +107,33 @@
     "immersivehotbar.group.tooltip": "Tooltip",
     "immersivehotbar.group.tooltip.desc": "Configure the tooltip animation and its position.",
 
+    "immersivehotbar.category.tooltip": "Tooltip",
+    "immersivehotbar.tooltip.tooltip": "Customize selected item tooltip animations and positioning.",
+
+    "immersivehotbar.group.tooltip_animation": "Tooltip Animation",
+    "immersivehotbar.group.tooltip_position": "Position",
+
+    "immersivehotbar.option.tooltip_item_change": "Bounce on Item Change",
+    "immersivehotbar.option.tooltip_item_change.desc": "Plays the tooltip pop animation when switching the selected item.",
+
+    "immersivehotbar.option.tooltip_empty_slot": "Shrink on Empty Slot",
+    "immersivehotbar.option.tooltip_empty_slot.desc": "Shrinks the previous tooltip instead of immediately removing it when selecting an empty slot.",
+
+    "immersivehotbar.option.tooltip_pop_scale": "Tooltip Bounce Scale",
+    "immersivehotbar.option.tooltip_pop_scale.desc": "Controls how large the tooltip grows when it appears or updates.",
+
+    "immersivehotbar.option.tooltip_animation_speed": "Tooltip Animation Speed",
+    "immersivehotbar.option.tooltip_animation_speed.desc": "Controls how quickly the tooltip settles toward its normal size.",
+
+    "immersivehotbar.option.tooltip_shrink_speed": "Tooltip Shrink Speed",
+    "immersivehotbar.option.tooltip_shrink_speed.desc": "Controls how quickly the tooltip shrinks away.",
+
+    "immersivehotbar.option.tooltip_minimum_scale": "Minimum Fade Scale",
+    "immersivehotbar.option.tooltip_minimum_scale.desc": "Controls how small the tooltip becomes while fading out.",
+
+    "immersivehotbar.option.animate_overlay_messages": "Animate Action Bar Messages",
+    "immersivehotbar.option.animate_overlay_messages.desc": "Applies tooltip-style animations to HUD overlay messages such as dismount prompts and the action bar.",
+
     "immersivehotbar.group.animation_triggers": "Animation Triggers",
     "immersivehotbar.group.animation_triggers.desc": "Enable animations for specific item types and events.",
 
@@ -118,6 +145,9 @@
 
     "immersivehotbar.group.xp_particles": "XP Level-Up Particles",
     "immersivehotbar.group.xp_particles.desc": "Particles that spawn at level-up milestones.",
+
+    "immersivehotbar.group.xp_pulse": "XP Level-Up Pulse",
+    "immersivehotbar.group.xp_pulse.desc": "Options controlling the Full Bar XP Pulse on level-up",
 
     "immersivehotbar.group.animation_feel": "Animation Feel",
     "immersivehotbar.group.animation_feel.desc": "Change the animation speeds and overall intensity of the animations.",
@@ -133,6 +163,15 @@
 
     "immersivehotbar.option.xp_text_pulse": "XP Text Pulse",
     "immersivehotbar.option.xp_text_pulse.desc": "Controls whether or not the XP level text pulses on level up.",
+
+    "immersivehotbar.option.xp_bar_pulse": "XP Bar Level Pulse",
+    "immersivehotbar.option.xp_bar_pulse.desc": "Creates an expanding glow around the XP bar at configurable level intervals.",
+
+    "immersivehotbar.option.xp_bar_pulse_every": "Pulse Every X Levels",
+    "immersivehotbar.option.xp_bar_pulse_every.desc": "Controls how many levels are required between XP bar pulses.",
+
+    "immersivehotbar.option.xp_bar_pulse_color": "XP Bar Pulse Color",
+    "immersivehotbar.option.xp_bar_pulse_color.desc": "Controls the color of the level-up pulse around the XP bar.",
 
     "immersivehotbar.group.item_animations": "Item Animations",
     "immersivehotbar.group.item_animations.desc": "Toggles for hotbar slot/item animation behaviors.",
@@ -165,5 +204,29 @@
     "immersivehotbar.group.background_style.desc": "Style your hotbar background and selection highlight.",
 
     "immersivehotbar.group.bouncy_animation": "Bouncy Animation",
-    "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale."
+    "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale.",
+
+    "immersivehotbar.group.camera_sway": "Camera Sway",
+    "immersivehotbar.group.camera_sway.desc": "Makes the hotbar subtly react to camera movement.",
+
+    "immersivehotbar.option.camera_sway_enabled": "Enable Camera Sway",
+    "immersivehotbar.option.camera_sway_enabled.desc": "Allows the hotbar to subtly shift based on camera movement.",
+
+    "immersivehotbar.option.camera_sway_strength": "Horizontal Sway Strength",
+    "immersivehotbar.option.camera_sway_strength.desc": "Controls how much the hotbar moves left and right when turning the camera.",
+
+    "immersivehotbar.option.camera_sway_vertical_strength": "Vertical Sway Strength",
+    "immersivehotbar.option.camera_sway_vertical_strength.desc": "Controls how much the hotbar moves up and down when looking up or down.",
+
+    "immersivehotbar.option.camera_sway_max_x": "Max Horizontal Offset",
+    "immersivehotbar.option.camera_sway_max_x.desc": "Maximum horizontal distance the hotbar can sway.",
+
+    "immersivehotbar.option.camera_sway_max_y": "Max Vertical Offset",
+    "immersivehotbar.option.camera_sway_max_y.desc": "Maximum vertical distance the hotbar can sway.",
+
+    "immersivehotbar.option.camera_sway_responsiveness": "Sway Responsiveness",
+    "immersivehotbar.option.camera_sway_responsiveness.desc": "How quickly the hotbar follows camera movement.",
+
+    "immersivehotbar.option.camera_sway_return_speed": "Return Speed",
+    "immersivehotbar.option.camera_sway_return_speed.desc": "How quickly the hotbar settles back to center."
 }

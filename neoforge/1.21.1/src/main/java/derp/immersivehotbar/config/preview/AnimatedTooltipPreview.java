@@ -1,31 +1,34 @@
 package derp.immersivehotbar.config.preview;
 
+import derp.immersivehotbar.animation.tooltip.TooltipAnimationController;
+import derp.immersivehotbar.animation.tooltip.TooltipAnimationRenderer;
 import dev.isxander.yacl3.gui.image.ImageRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 public final class AnimatedTooltipPreview implements ImageRenderer {
-    private static final ResourceLocation HOTBAR =
-            ResourceLocation.withDefaultNamespace("hud/hotbar");
-    private static final ResourceLocation HOTBAR_SELECTION =
-            ResourceLocation.withDefaultNamespace("hud/hotbar_selection");
+    private static final ResourceLocation HOTBAR = ResourceLocation.withDefaultNamespace("hud/hotbar");
+    private static final ResourceLocation HOTBAR_SELECTION = ResourceLocation.withDefaultNamespace("hud/hotbar_selection");
+
+    private static final ItemStack PREVIEW_STACK = new ItemStack(Items.DIAMOND_SWORD);
+
+    private static final Component PREVIEW_TEXT = Component.literal("Diamond Sword");
 
     private final Minecraft minecraft = Minecraft.getInstance();
+    private final TooltipAnimationController animation = new TooltipAnimationController();
 
     private long lastFrameTime = System.nanoTime();
     private float loopTimer = 0.0f;
-    private float tooltipScale = 0.0f;
 
     public void reset() {
         lastFrameTime = System.nanoTime();
         loopTimer = 0.0f;
-        tooltipScale = 0.0f;
+        animation.reset();
     }
 
     private float frameDelta() {
@@ -39,14 +42,11 @@ public final class AnimatedTooltipPreview implements ImageRenderer {
         loopTimer += dt;
         if (loopTimer >= 5.0f) {
             loopTimer = 0.0f;
-            tooltipScale = 1.2f; // same "new item" pop as your mixin
+            animation.reset();
         }
 
         float fadeSeconds;
-
-        if (loopTimer < 0.20f) {
-            fadeSeconds = 0.20f;
-        } else if (loopTimer < 3.30f) {
+        if (loopTimer < 3.30f) {
             fadeSeconds = 0.20f;
         } else if (loopTimer < 3.55f) {
             float out = 1.0f - ((loopTimer - 3.30f) / 0.25f);
@@ -55,52 +55,22 @@ public final class AnimatedTooltipPreview implements ImageRenderer {
             fadeSeconds = 0.0f;
         }
 
-        if (fadeSeconds > 0.0f) {
-            float fadeRatio = Math.min(fadeSeconds / 0.2f, 1.0f);
-            float targetScale = 0.5f + fadeRatio * 0.5f;
-            tooltipScale += (targetScale - tooltipScale) * (8.0f * dt);
-            tooltipScale = Mth.clamp(tooltipScale, 0.0f, 1.5f);
-        } else {
-            tooltipScale += (0.0f - tooltipScale) * (10.0f * dt);
-            if (tooltipScale < 0.01f) tooltipScale = 0.0f;
-        }
+        animation.updatePreview(PREVIEW_STACK, fadeSeconds, dt);
     }
 
-    private float currentFadeRatio() {
-        if (loopTimer < 3.30f) return 1.0f;
-        if (loopTimer < 3.55f) {return Mth.clamp(1.0f - ((loopTimer - 3.30f) / 0.25f), 0.0f, 1.0f);}
-        return 0.0f;
+    private void renderHotbar(GuiGraphics graphics) {
+        graphics.blitSprite(HOTBAR, 0, 32, 182, 24);
+        graphics.blitSprite(HOTBAR_SELECTION, 79, 31, 24, 24);
+
+        graphics.renderItem(PREVIEW_STACK, 83, 35);
+        graphics.renderItemDecorations(minecraft.font, PREVIEW_STACK, 83, 35);
     }
 
-    private void renderHotbar(GuiGraphics gfx) {
-        gfx.blitSprite(HOTBAR, 0, 32, 182, 24);
-        gfx.blitSprite(HOTBAR_SELECTION, 79, 31, 24, 24);
-
-        ItemStack stack = new ItemStack(Items.DIAMOND_SWORD);
-        gfx.renderItem(stack, 83, 35);
-        gfx.renderItemDecorations(minecraft.font, stack, 83, 35);
-    }
-
-    private void renderTooltip(GuiGraphics gfx) {
-        float fadeRatio = currentFadeRatio();
-        if (fadeRatio <= 0.05f || tooltipScale <= 0.01f) return;
-
-        Component text = Component.literal("Diamond Sword");
-
-        int width = minecraft.font.width(text);
+    private void renderTooltip(GuiGraphics graphics) {
+        int width = minecraft.font.width(PREVIEW_TEXT);
         int x = (182 - width) / 2;
-        int y = 10;
-        int alpha = (int) (fadeRatio * 255.0f);
-        int color = FastColor.ARGB32.color(alpha, 0xFFFFFF);
 
-        gfx.pose().pushPose();
-        gfx.pose().translate(x + width / 2.0f, y + 4.0f, 0.0f);
-        gfx.pose().scale(tooltipScale, tooltipScale, 1.0f);
-        gfx.pose().translate(-(x + width / 2.0f), -(y + 4.0f), 0.0f);
-
-        gfx.drawStringWithBackdrop(minecraft.font, text, x, y, width, color);
-
-        gfx.pose().popPose();
+        TooltipAnimationRenderer.renderPreview(graphics, minecraft, animation.state(), PREVIEW_TEXT, x, 10);
     }
 
     @Override
@@ -108,7 +78,7 @@ public final class AnimatedTooltipPreview implements ImageRenderer {
     }
 
     @Override
-    public int render(GuiGraphics gfx, int x, int y, int renderWidth, float tickDelta) {
+    public int render(GuiGraphics graphics, int x, int y, int renderWidth, float tickDelta) {
         float dt = frameDelta();
         update(dt);
 
@@ -117,24 +87,25 @@ public final class AnimatedTooltipPreview implements ImageRenderer {
         int padding = 6;
 
         float previewScale = Math.min(1.0f, (renderWidth - padding * 2) / (float) naturalWidth);
-        int boxH = Math.round(naturalHeight * previewScale) + padding * 2;
+
+        int boxHeight = Math.round(naturalHeight * previewScale) + padding * 2;
 
         int scaledWidth = Math.round(naturalWidth * previewScale);
         int scaledHeight = Math.round(naturalHeight * previewScale);
 
         int startX = x + (renderWidth - scaledWidth) / 2;
-        int startY = y + (boxH - scaledHeight) / 2;
+        int startY = y + (boxHeight - scaledHeight) / 2;
 
-        gfx.pose().pushPose();
-        gfx.pose().translate(startX, startY, 0.0f);
-        gfx.pose().scale(previewScale, previewScale, 1.0f);
+        graphics.pose().pushPose();
+        graphics.pose().translate(startX, startY, 0.0f);
+        graphics.pose().scale(previewScale, previewScale, 1.0f);
 
-        renderTooltip(gfx);
-        renderHotbar(gfx);
+        renderTooltip(graphics);
+        renderHotbar(graphics);
 
-        gfx.pose().popPose();
+        graphics.pose().popPose();
 
-        return boxH;
+        return boxHeight;
     }
 
     @Override

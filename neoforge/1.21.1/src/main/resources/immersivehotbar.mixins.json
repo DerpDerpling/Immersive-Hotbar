@@ -5,11 +5,12 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "client.AttackEntityMixin",
+    "client.EatingAnimationMixin",
     "client.ItemAnimationsMixin",
     "client.ItemUseAnimationMixin",
+    "client.OverlayMessageAnimationsMixin",
     "client.TooltipAnimationsMixin",
-    "client.XPBarMixin",
-    "client.EatingAnimationMixin"
+    "client.XPBarMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,55 +1,48 @@
 package derp.immersivehotbar.config.preview;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import derp.immersivehotbar.util.UIParticle;
+import derp.immersivehotbar.animation.xp.XPAnimationController;
+import derp.immersivehotbar.animation.xp.XPAnimationRenderer;
+import derp.immersivehotbar.animation.xp.XPAnimationState;
+import derp.immersivehotbar.animation.xp.XPParticleController;
 import dev.isxander.yacl3.gui.image.ImageRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 
-import java.awt.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 
 public final class XPBarPreview implements ImageRenderer {
-    private static final ResourceLocation GUI_ICONS =
-            new ResourceLocation("minecraft", "textures/gui/icons.png");
+    private static final ResourceLocation GUI_ICONS = new ResourceLocation("minecraft", "textures/gui/icons.png");
 
     private final Minecraft minecraft = Minecraft.getInstance();
-    private final List<UIParticle> particles = new ArrayList<>();
+    private final XPAnimationState state = new XPAnimationState();
+    private final XPParticleController particles = new XPParticleController();
 
     private long lastFrameTime = System.nanoTime();
 
     private float loopTimer = 0.0f;
-    private float animatedXpTotal = 4.15f;
-    private float animatedXpProgress = 0.15f;
     private float targetXpTotal = 4.15f;
-
-    private float glowHeadProgress = 0.15f;
-    private boolean spawnedParticlesThisLoop = false;
     private int displayedLevel = 4;
-    private float xpFrontGlow = 0.0f;
+    private boolean spawnedParticlesThisLoop = false;
 
-    private float pulseScale = 1.0f;
-    private float pulseTargetScale = 1.0f;
+    public XPBarPreview() {
+        reset();
+    }
 
     public void reset() {
         lastFrameTime = System.nanoTime();
         loopTimer = 0.0f;
-        animatedXpTotal = 4.15f;
-        animatedXpProgress = 0.15f;
         targetXpTotal = 4.15f;
-        glowHeadProgress = 0.15f;
-        xpFrontGlow = 0.0f;
         displayedLevel = 4;
-        pulseScale = 1.0f;
-        pulseTargetScale = 1.0f;
         spawnedParticlesThisLoop = false;
+
+        state.reset();
+        state.animatedTotal(4.15f);
+        state.animatedProgress(0.15f);
+        state.glowHeadProgress(0.15f);
+        state.lastLevel(4);
+
         particles.clear();
     }
 
@@ -58,10 +51,6 @@ public final class XPBarPreview implements ImageRenderer {
         float dt = (now - lastFrameTime) / 1_000_000_000.0f;
         lastFrameTime = now;
         return Mth.clamp(dt, 0.0f, 0.05f);
-    }
-
-    private static int rgb(Color c) {
-        return (c.getRed() << 16) | (c.getGreen() << 8) | c.getBlue();
     }
 
     private void updateTarget() {
@@ -85,199 +74,71 @@ public final class XPBarPreview implements ImageRenderer {
     private void update(float dt) {
         loopTimer += dt;
 
-        int oldLevel = (int) Math.floor(animatedXpTotal);
+        int oldLevel = (int) Math.floor(state.animatedTotal());
         updateTarget();
 
-        if (animatedXpBar) {
-            float delta = targetXpTotal - animatedXpTotal;
-            animatedXpTotal += delta * Math.min(xpBarSpeed * dt * 20.0f, 1.0f);
-        } else {
-            animatedXpTotal = targetXpTotal;
-        }
-
-        animatedXpProgress = animatedXpTotal - (float) Math.floor(animatedXpTotal);
-
-        float follow = Math.min(1.0f, 12.0f * dt);
-        glowHeadProgress += (animatedXpProgress - glowHeadProgress) * follow;
+        XPAnimationController.animateProgress(state, targetXpTotal, dt);
+        XPAnimationController.updateGlowHead(state, state.animatedProgress(), dt);
 
         int newLevel = (int) Math.floor(targetXpTotal);
         boolean leveledUp = newLevel > oldLevel && loopTimer > 2.25f && loopTimer < 2.45f;
-
-        if (xpGlowEnabled) {
-            boolean gaining = targetXpTotal > animatedXpTotal + 0.002f;
-
-            if (gaining) {
-                xpFrontGlow = Math.min(1.0f, xpFrontGlow + xpGlowBoostOnGain * dt * 10.0f);
-            } else {
-                xpFrontGlow = Math.max(0.0f, xpFrontGlow - dt * xpGlowFadeSpeed * 20.0f);
-            }
-
-            if (leveledUp) {
-                xpFrontGlow = 1.0f;
-            }
-        } else {
-            xpFrontGlow = 0.0f;
+        boolean gaining = targetXpTotal > state.animatedTotal() + 0.002f;
+        if (leveledUp && xpBarPulseEnabled) {
+            int every = Math.max(1, xpBarPulseLevels);
+            if (displayedLevel % every == 0) state.barPulse(1.0f);
         }
 
-        if (xpTextPulseEnabled && leveledUp) {
-            pulseScale = 1.08f;
-            pulseTargetScale = 2.0f;
+        if (state.barPulse() > 0.0f) {
+            state.barPulse(Math.max(0.0f, state.barPulse() - dt * 0.08f * 20.0f));
         }
 
-        if (!xpTextPulseEnabled) {
-            pulseScale = 1.0f;
-            pulseTargetScale = 1.0f;
-        } else {
-            if (pulseTargetScale > pulseScale) {
-                pulseScale += (pulseTargetScale - pulseScale) * Math.min(dt * 1.5f * 20.0f, 1.0f);
-                if (Math.abs(pulseTargetScale - pulseScale) < 0.02f) {
-                    pulseScale = pulseTargetScale;
-                    pulseTargetScale = 1.0f;
-                }
-            } else if (pulseScale > 1.0f) {
-                pulseScale -= dt * 0.1f * 20.0f;
-                if (pulseScale < 1.0f) pulseScale = 1.0f;
-            }
-        }
+        XPAnimationController.updateGlow(state, gaining, leveledUp, dt);
+
+        if (leveledUp) XPAnimationController.triggerPulse(state);
+        XPAnimationController.updatePulse(state, dt);
 
         if (xpLevelUpParticlesEnabled && leveledUp && !spawnedParticlesThisLoop) {
-            spawnParticles();
+            int every = Math.max(1, xpLevelUpParticleLevels);
+
+            if (displayedLevel % every == 0) particles.spawn(91, 18);
             spawnedParticlesThisLoop = true;
         }
-
-        Iterator<UIParticle> iterator = particles.iterator();
-        while (iterator.hasNext()) {
-            UIParticle p = iterator.next();
-
-            float particleDt = dt * 20.0f;
-
-            if (!p.tick(particleDt)) {
-                iterator.remove();
-            }
-        }
+        particles.update(dt * 20.0f);
     }
 
-    private void spawnParticles() {
-        int every = Math.max(1, xpLevelUpParticleLevels);
-        if (displayedLevel % every != 0) return;
-
-        for (int i = 0; i < 25; i++) {
-            UIParticle p = new UIParticle(91, 18);
-
-            float variance = 0.10f;
-            p.tintR = 1.0f + (float) ((Math.random() * 2 - 1) * variance);
-            p.tintG = 1.0f + (float) ((Math.random() * 2 - 1) * variance);
-            p.tintB = 1.0f + (float) ((Math.random() * 2 - 1) * variance);
-
-            particles.add(p);
-        }
-    }
-
-    private void renderXpBar(GuiGraphics gfx) {
+    private void renderXpBar(GuiGraphics graphics) {
         int x = 0;
         int y = 20;
 
-        gfx.blit(GUI_ICONS, x, y, 0, 64, 182, 5);
+        graphics.blit(GUI_ICONS, x, y, 0, 64, 182, 5);
 
-        int filled = (int) (animatedXpProgress * 183.0f);
-        if (filled > 0) {
-            gfx.blit(GUI_ICONS, x, y, 0, 69, filled, 5);
-        }
+        int filled = (int) (state.animatedProgress() * 183.0f);
+        if (filled > 0) graphics.blit(GUI_ICONS, x, y, 0, 69, filled, 5);
 
-        renderGlow(gfx, x, y);
-        renderParticles(gfx);
-        renderLevelText(gfx, y);
+        XPAnimationRenderer.renderBarPulse(graphics, x, y, state);
+        XPAnimationRenderer.renderFrontGlow(graphics, x, y, state);
+        particles.render(graphics);
+        renderLevelText(graphics, y);
+
     }
 
-    private void renderGlow(GuiGraphics gfx, int x, int y) {
-        if (!xpGlowEnabled || xpFrontGlow <= 0.001f) return;
-
-        int glowRgb = rgb(xpGlowColor);
-        int filled = (int) (glowHeadProgress * 183.0f);
-        if (filled <= 0) return;
-
-        int frontX = x + filled - 1;
-        int barHeight = 5;
-
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
-
-        float t = xpFrontGlow;
-
-        gfx.fill(frontX, y - 1, frontX + 2, y + barHeight + 1, ((int) (t * 140) << 24) | glowRgb);
-        gfx.fill(frontX - 2, y - 2, frontX + 4, y + barHeight + 2, ((int) (t * 80) << 24) | glowRgb);
-        gfx.fill(frontX - 5, y - 4, frontX + 7, y + barHeight + 4, ((int) (t * 45) << 24) | glowRgb);
-
-        int tail = Math.max(0, glowTailPx);
-        int strips = Math.max(1, glowTailStrips);
-
-        for (int i = 0; i < strips; i++) {
-            float k0 = (float) i / strips;
-            float k1 = (float) (i + 1) / strips;
-
-            int x0 = frontX - (int) (tail * k1);
-            int x1 = frontX - (int) (tail * k0);
-
-            int alpha = (int) (t * 70.0f * (1.0f - k0)) << 24;
-            gfx.fill(x0, y - 1, x1, y + barHeight + 1, alpha | glowRgb);
-        }
-
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        RenderSystem.disableBlend();
-    }
-
-    private void renderLevelText(GuiGraphics gfx, int barY) {
+    private void renderLevelText(GuiGraphics graphics, int barY) {
         String text = String.valueOf(displayedLevel);
-        int textWidth = minecraft.font.width(text);
-        int x = (182 - textWidth) / 2;
+        int width = minecraft.font.width(text);
+        int x = (182 - width) / 2;
         int y = barY - 13;
 
-        gfx.pose().pushPose();
-
-        if (pulseScale > 1.0f) {
-            float centerX = x + textWidth / 2.0f;
-            float centerY = y + 4.0f;
-
-            gfx.pose().translate(centerX, centerY, 0.0f);
-            gfx.pose().scale(pulseScale, pulseScale, 1.0f);
-            gfx.pose().translate(-centerX, -centerY, 0.0f);
-        }
-
-        gfx.drawString(minecraft.font, text, x + 1, y, 0, false);
-        gfx.drawString(minecraft.font, text, x - 1, y, 0, false);
-        gfx.drawString(minecraft.font, text, x, y + 1, 0, false);
-        gfx.drawString(minecraft.font, text, x, y - 1, 0, false);
-        gfx.drawString(minecraft.font, text, x, y, 0x80FF20, false);
-
-        gfx.pose().popPose();
-    }
-
-    private void renderParticles(GuiGraphics gfx) {
-        if (particles.isEmpty()) return;
-
-        RenderSystem.enableBlend();
-
-        Color base = xpLevelUpParticleColor;
-
-        for (UIParticle p : particles) {
-            int r = Math.min(255, Math.max(0, (int) (base.getRed() * p.tintR)));
-            int g = Math.min(255, Math.max(0, (int) (base.getGreen() * p.tintG)));
-            int b = Math.min(255, Math.max(0, (int) (base.getBlue() * p.tintB)));
-
-            int color = ((int) (p.alpha * 255) << 24) | (r << 16) | (g << 8) | b;
-
-            gfx.fill((int) (p.x - 2.5f), (int) (p.y - 2.5f), (int) (p.x + 2.5f), (int) (p.y + 2.5f), color);
-        }
-
-        RenderSystem.disableBlend();
+        XPAnimationRenderer.renderLevelText(graphics, minecraft.font, text, x, y, state, (drawX, drawY) -> {
+            graphics.drawString(minecraft.font, text, drawX + 1, drawY, 0, false);
+            graphics.drawString(minecraft.font, text, drawX - 1, drawY, 0, false);
+            graphics.drawString(minecraft.font, text, drawX, drawY + 1, 0, false);
+            graphics.drawString(minecraft.font, text, drawX, drawY - 1, 0, false);
+            return graphics.drawString(minecraft.font, text, drawX, drawY, 0x80FF20, false);
+        });
     }
 
     @Override
-    public void tick() {
-    }
-
-    @Override
-    public int render(GuiGraphics gfx, int x, int y, int renderWidth, float tickDelta) {
+    public int render(GuiGraphics graphics, int x, int y, int renderWidth, float tickDelta) {
         float dt = frameDelta();
         update(dt);
 
@@ -286,26 +147,24 @@ public final class XPBarPreview implements ImageRenderer {
         int padding = 6;
 
         float previewScale = Math.min(1.0f, (renderWidth - padding * 2) / (float) naturalWidth);
-        int boxH = Math.round(naturalHeight * previewScale) + padding * 2;
+        int boxHeight = Math.round(naturalHeight * previewScale) + padding * 2;
 
         int scaledWidth = Math.round(naturalWidth * previewScale);
         int scaledHeight = Math.round(naturalHeight * previewScale);
 
         int startX = x + (renderWidth - scaledWidth) / 2;
-        int startY = y + (boxH - scaledHeight) / 2;
+        int startY = y + (boxHeight - scaledHeight) / 2;
 
-        gfx.pose().pushPose();
-        gfx.pose().translate(startX, startY, 0.0f);
-        gfx.pose().scale(previewScale, previewScale, 1.0f);
+        graphics.pose().pushPose();
+        graphics.pose().translate(startX, startY, 0.0f);
+        graphics.pose().scale(previewScale, previewScale, 1.0f);
 
-        renderXpBar(gfx);
+        renderXpBar(graphics);
 
-        gfx.pose().popPose();
-
-        return boxH;
+        graphics.pose().popPose();
+        return boxHeight;
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 }

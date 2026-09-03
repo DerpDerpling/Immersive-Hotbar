@@ -26,6 +26,6 @@ public class immersivehotbar {
 
     private void commonSetup(final FMLCommonSetupEvent event) {
         ImmersiveHotbarConfigHandler.load();
-        LOGGER.info("HELLO FROM COMMON SETUP");
+        LOGGER.info("Immersive-Hotbar Loaded");
     }
 }

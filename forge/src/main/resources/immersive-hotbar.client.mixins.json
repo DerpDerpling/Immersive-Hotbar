@@ -6,8 +6,10 @@
   "client": [
     "AttackEntityMixin",
     "EatingAnimationMixin",
+    "GuiOverlayAccessor",
     "ItemAnimationsMixin",
     "ItemUseAnimationMixin",
+    "OverlayMessageAnimationsMixin",
     "TooltipAnimationsMixin",
     "XPBarMixin"
   ],

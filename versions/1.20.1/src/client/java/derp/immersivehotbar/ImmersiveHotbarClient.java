@@ -1,119 +1,96 @@
 package derp.immersivehotbar;
 
+import derp.immersivehotbar.animation.hotbar.HotbarAnimationController;
+import derp.immersivehotbar.animation.hotbar.HotbarSlots;
+import derp.immersivehotbar.animation.tooltip.TooltipAnimationController;
 import derp.immersivehotbar.config.ImmersiveHotbarConfigHandler;
-import derp.immersivehotbar.util.TooltipAnimationState;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
-import static derp.immersivehotbar.util.SlotAnimationState.*;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.toolAnimates;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.weaponAnimates;
 
 public class ImmersiveHotbarClient implements ClientModInitializer {
-	private boolean wasUsingItem = false;
-	private ItemStack lastUsedItem = ItemStack.EMPTY;
-	private boolean wasCrossbowChargedMainhand = false;
-	private boolean wasCrossbowChargedOffhand = false;
-	public static final boolean IS_DOUBLEHOTBAR_LOADED = FabricLoader.getInstance().isModLoaded("double_hotbar");
+    private boolean wasUsingItem = false;
+    private ItemStack lastUsedItem = ItemStack.EMPTY;
+    private boolean wasCrossbowChargedMainhand = false;
+    private boolean wasCrossbowChargedOffhand = false;
 
-	@Override
-	public void onInitializeClient() {
-		ImmersiveHotbarConfigHandler.load();
+    public static final boolean IS_DOUBLEHOTBAR_LOADED = FabricLoader.getInstance().isModLoaded("double_hotbar");
 
-		ClientPlayConnectionEvents.DISCONNECT.register((client, world) -> Arrays.fill(lastSlotStacks, ItemStack.EMPTY));
-		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> TooltipAnimationState.reset());
+    @Override
+    public void onInitializeClient() {
+        ImmersiveHotbarConfigHandler.load();
 
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.player == null) return;
+        ClientPlayConnectionEvents.DISCONNECT.register((client, world) -> HotbarAnimationController.getInstance().clearTrackedStacks());
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> TooltipAnimationController.getInstance().reset());
 
-			boolean isUsing = client.player.isUsingItem();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.player == null) return;
 
-			// track bow usage
-			if (isUsing) {
-				lastUsedItem = client.player.getUseItem();
-			} else if (wasUsingItem && !lastUsedItem.isEmpty()) {
-				Item item = lastUsedItem.getItem();
+            boolean isUsing = client.player.isUsingItem();
+            if (isUsing) {
+                lastUsedItem = client.player.getUseItem();
+            } else if (wasUsingItem && !lastUsedItem.isEmpty()) {
+                Item item = lastUsedItem.getItem();
+                if (weaponAnimates && (item instanceof BowItem || item instanceof CrossbowItem)) {
+                    int slot = client.player.getMainHandItem() == lastUsedItem ? client.player.getInventory().selected : HotbarSlots.offhand();
+                    triggerShrink(slot);
+                }
+                lastUsedItem = ItemStack.EMPTY;
+            }
+            wasUsingItem = isUsing;
 
-				if (weaponAnimates && (item instanceof BowItem || item instanceof CrossbowItem)) {
-					int slot = client.player.getMainHandItem() == lastUsedItem ? client.player.getInventory().selected : 9;
-					triggerShrink(slot);
-				}
-				lastUsedItem = ItemStack.EMPTY;
-			}
+            ItemStack mainHandStack = client.player.getMainHandItem();
+            if (mainHandStack.getItem() instanceof CrossbowItem) {
+                boolean isCharged = CrossbowItem.isCharged(mainHandStack);
+                if (wasCrossbowChargedMainhand && !isCharged && weaponAnimates) triggerShrink(client.player.getInventory().selected);
+                wasCrossbowChargedMainhand = isCharged;
+            } else {
+                wasCrossbowChargedMainhand = false;
+            }
 
-			wasUsingItem = isUsing;
+            ItemStack offHandStack = client.player.getOffhandItem();
+            if (offHandStack.getItem() instanceof CrossbowItem) {
+                boolean isCharged = CrossbowItem.isCharged(offHandStack);
+                if (wasCrossbowChargedOffhand && !isCharged && weaponAnimates) triggerShrink(HotbarSlots.offhand());
+                wasCrossbowChargedOffhand = isCharged;
+            } else {
+                wasCrossbowChargedOffhand = false;
+            }
+        });
 
-			// crossbow mainhand
-			ItemStack mainHandStack = client.player.getMainHandItem();
-			if (mainHandStack.getItem() instanceof CrossbowItem) {
-				boolean isCharged = CrossbowItem.isCharged(mainHandStack);
-				if (wasCrossbowChargedMainhand && !isCharged && weaponAnimates) {
-					int slot = client.player.getInventory().selected;
-					triggerShrink(slot);
-				}
-				wasCrossbowChargedMainhand = isCharged;
-			} else {
-				wasCrossbowChargedMainhand = false;
-			}
+        AtomicReference<BlockPos> lastBreakingPos = new AtomicReference<>();
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (client.level == null || client.player == null) return;
 
-			// crossbow offhand
-			ItemStack offHandStack = client.player.getOffhandItem();
-			if (offHandStack.getItem() instanceof CrossbowItem) {
-				boolean isCharged = CrossbowItem.isCharged(offHandStack);
-				if (wasCrossbowChargedOffhand && !isCharged && weaponAnimates) {
-					triggerShrink(9);
-				}
-				wasCrossbowChargedOffhand = isCharged;
-			} else {
-				wasCrossbowChargedOffhand = false;
-			}
-		});
-		// track block breaking to trigger tool animations
-		AtomicReference<BlockPos> lastBreakingPos = new AtomicReference<>();
+            HitResult hit = client.hitResult;
+            if (hit != null && hit.getType() == HitResult.Type.BLOCK && client.options.keyAttack.isDown()) {
+                lastBreakingPos.set(((BlockHitResult) hit).getBlockPos());
+            }
 
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.level == null || client.player == null) return;
+            BlockPos pending = lastBreakingPos.get();
+            if (pending != null && client.level.getBlockState(pending).isAir()) {
+                ItemStack stack = client.player.getMainHandItem();
+                if (stack.getItem() instanceof TieredItem && toolAnimates) triggerShrink(client.player.getInventory().selected);
+                lastBreakingPos.set(null);
+            }
+        });
+    }
 
-
-			HitResult r = client.hitResult;
-			if (r != null && r.getType() == HitResult.Type.BLOCK && client.options.keyAttack.isDown()) {
-				BlockPos targetPos = ((BlockHitResult) r).getBlockPos();
-				lastBreakingPos.set(targetPos);
-			}
-
-
-			BlockPos pending = lastBreakingPos.get();
-			if (pending != null) {
-
-				if (client.level.getBlockState(pending).isAir()) {
-					ItemStack stack = client.player.getMainHandItem();
-					if (stack.getItem() instanceof TieredItem && toolAnimates) {
-						int slot = client.player.getInventory().selected;
-						triggerShrink(slot);
-					}
-
-					lastBreakingPos.set(null);
-				}
-			}
-		});
-	}
-
-
-		private void triggerShrink(int slot) {
-		if (slot >= 0 && slot < 9) {
-			wasUsed[slot] = true;
-			slotScales[slot] = nonSelectedItemSize - (shouldItemGrowWhenSelected ? 0.03f : 0.2f);
-		} else if (slot == 9) {
-			wasUsed[slot] = true;
-			slotScales[slot] = nonSelectedItemSize - 0.2f;
-		}
-	}
+    private void triggerShrink(int slot) {
+        HotbarAnimationController.getInstance().triggerShrink(slot);
+    }
 }

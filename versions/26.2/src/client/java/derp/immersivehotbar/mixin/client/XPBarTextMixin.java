@@ -2,6 +2,7 @@ package derp.immersivehotbar.mixin.client;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import derp.immersivehotbar.animation.xp.XPAnimationController;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
@@ -16,45 +17,42 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.xpTextPulseEnabled;
-import static derp.immersivehotbar.util.XPBarState.pulseScale;
 
 @Environment(EnvType.CLIENT)
 @Mixin(Hud.class)
 public abstract class XPBarTextMixin {
-    @Shadow
-    @Final
-    private Minecraft minecraft;
+    @Shadow @Final private Minecraft minecraft;
 
     @WrapOperation(method = "extractHotbarAndDecorations", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/contextualbar/ContextualBar;extractExperienceLevel(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/gui/Font;I)V"))
-    private void wrapDrawExperienceLevel(GuiGraphicsExtractor context, Font textRenderer, int level, Operation<Void> original) {
+    private void immersiveHotbar$animateExperienceLevel(GuiGraphicsExtractor graphics, Font font, int level, Operation<Void> original) {
         if (!xpTextPulseEnabled || minecraft.player == null || level <= 0) {
-            original.call(context, textRenderer, level);
+            original.call(graphics, font, level);
             return;
         }
 
-        float scale = pulseScale;
+        float scale = XPAnimationController.hud().state().pulseScale();
+
         if (scale <= 1.0f) {
-            original.call(context, textRenderer, level);
+            original.call(graphics, font, level);
             return;
         }
 
-        Component renderedText = Component.translatable("gui.experience.level", level);
-        float textWidth = textRenderer.width(renderedText);
+        Component text = Component.translatable("gui.experience.level", level);
+        float width = font.width(text);
 
-        float x = (context.guiWidth() - textWidth) / 2.0f;
-        float y = context.guiHeight() - 24 - 9 - 2;
+        float x = (graphics.guiWidth() - width) / 2.0f;
+        float y = graphics.guiHeight() - 24 - 9 - 2;
 
-        float centerX = x + textWidth / 2.0f;
+        float centerX = x + width / 2.0f;
         float centerY = y + 4.5f;
 
-        var matrices = context.pose();
-        matrices.pushMatrix();
-        matrices.translate(centerX, centerY);
-        matrices.scale(scale, scale);
-        matrices.translate(-centerX, -centerY);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(centerX, centerY);
+        graphics.pose().scale(scale, scale);
+        graphics.pose().translate(-centerX, -centerY);
 
-        original.call(context, textRenderer, level);
+        original.call(graphics, font, level);
 
-        matrices.popMatrix();
+        graphics.pose().popMatrix();
     }
 }

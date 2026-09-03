@@ -1,17 +1,21 @@
 package derp.immersivehotbar;
 
-import derp.immersivehotbar.util.TooltipAnimationState;
+import derp.immersivehotbar.animation.hotbar.HotbarAnimationController;
+import derp.immersivehotbar.animation.hotbar.HotbarSlots;
+import derp.immersivehotbar.animation.tooltip.TooltipAnimationController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.*;
+import net.minecraft.world.item.BowItem;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TieredItem;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraftforge.fml.ModList;
 
-import java.util.Arrays;
-
-import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
-import static derp.immersivehotbar.util.SlotAnimationState.*;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.toolAnimates;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.weaponAnimates;
 
 public final class ImmersiveHotbarClient {
     private static boolean wasUsingItem;
@@ -33,8 +37,7 @@ public final class ImmersiveHotbarClient {
         } else if (wasUsingItem && !lastUsedItem.isEmpty()) {
             Item item = lastUsedItem.getItem();
             if (weaponAnimates && (item instanceof BowItem || item instanceof CrossbowItem)) {
-                int slot = client.player.getMainHandItem() == lastUsedItem
-                        ? client.player.getInventory().selected : 9;
+                int slot = client.player.getMainHandItem() == lastUsedItem ? client.player.getInventory().selected : HotbarSlots.offhand();
                 triggerShrink(slot);
             }
             lastUsedItem = ItemStack.EMPTY;
@@ -43,20 +46,18 @@ public final class ImmersiveHotbarClient {
 
         ItemStack mainHandStack = client.player.getMainHandItem();
         if (mainHandStack.getItem() instanceof CrossbowItem) {
-            boolean charged = CrossbowItem.isCharged(mainHandStack);
-            if (wasCrossbowChargedMainhand && !charged && weaponAnimates) {
-                triggerShrink(client.player.getInventory().selected);
-            }
-            wasCrossbowChargedMainhand = charged;
+            boolean isCharged = CrossbowItem.isCharged(mainHandStack);
+            if (wasCrossbowChargedMainhand && !isCharged && weaponAnimates) triggerShrink(client.player.getInventory().selected);
+            wasCrossbowChargedMainhand = isCharged;
         } else {
             wasCrossbowChargedMainhand = false;
         }
 
         ItemStack offHandStack = client.player.getOffhandItem();
         if (offHandStack.getItem() instanceof CrossbowItem) {
-            boolean charged = CrossbowItem.isCharged(offHandStack);
-            if (wasCrossbowChargedOffhand && !charged && weaponAnimates) triggerShrink(9);
-            wasCrossbowChargedOffhand = charged;
+            boolean isCharged = CrossbowItem.isCharged(offHandStack);
+            if (wasCrossbowChargedOffhand && !isCharged && weaponAnimates) triggerShrink(HotbarSlots.offhand());
+            wasCrossbowChargedOffhand = isCharged;
         } else {
             wasCrossbowChargedOffhand = false;
         }
@@ -66,32 +67,30 @@ public final class ImmersiveHotbarClient {
             if (hit != null && hit.getType() == HitResult.Type.BLOCK && client.options.keyAttack.isDown()) {
                 lastBreakingPos = ((BlockHitResult) hit).getBlockPos();
             }
+
             if (lastBreakingPos != null && client.level.getBlockState(lastBreakingPos).isAir()) {
-                if (client.player.getMainHandItem().getItem() instanceof TieredItem && toolAnimates) {
-                    triggerShrink(client.player.getInventory().selected);
-                }
+                ItemStack stack = client.player.getMainHandItem();
+                if (stack.getItem() instanceof TieredItem && toolAnimates) triggerShrink(client.player.getInventory().selected);
                 lastBreakingPos = null;
             }
         }
     }
 
     public static void resetJoin() {
-        TooltipAnimationState.reset();
+        TooltipAnimationController.getInstance().reset();
     }
 
     public static void resetDisconnect() {
-        Arrays.fill(lastSlotStacks, ItemStack.EMPTY);
-        TooltipAnimationState.reset();
+        HotbarAnimationController.getInstance().clearTrackedStacks();
+        TooltipAnimationController.getInstance().reset();
         lastBreakingPos = null;
+        wasUsingItem = false;
+        lastUsedItem = ItemStack.EMPTY;
+        wasCrossbowChargedMainhand = false;
+        wasCrossbowChargedOffhand = false;
     }
 
     private static void triggerShrink(int slot) {
-        if (slot >= 0 && slot < 9) {
-            wasUsed[slot] = true;
-            slotScales[slot] = nonSelectedItemSize - (shouldItemGrowWhenSelected ? 0.03f : 0.2f);
-        } else if (slot == 9) {
-            wasUsed[slot] = true;
-            slotScales[slot] = nonSelectedItemSize - 0.2f;
-        }
+        HotbarAnimationController.getInstance().triggerShrink(slot);
     }
 }

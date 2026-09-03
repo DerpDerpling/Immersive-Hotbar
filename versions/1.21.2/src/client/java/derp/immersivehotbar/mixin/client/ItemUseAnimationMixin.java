@@ -1,6 +1,7 @@
 package derp.immersivehotbar.mixin.client;
 
-import derp.immersivehotbar.InGameHudAnimationHandler;
+import derp.immersivehotbar.animation.hotbar.HotbarAnimationController;
+import derp.immersivehotbar.animation.hotbar.HotbarSlots;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.client.player.LocalPlayer;
@@ -20,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import static derp.immersivehotbar.ImmersiveHotbarClient.IS_DOUBLEHOTBAR_LOADED;
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.toolAnimates;
 import static derp.immersivehotbar.util.ItemChecker.isTool;
 import static derp.immersivehotbar.util.ItemChecker.isWeapon;
@@ -95,13 +95,7 @@ public abstract class ItemUseAnimationMixin {
     private void triggerHotbarAnimation(InteractionHand hand) {
         if (minecraft.player == null || minecraft.gui == null) return;
 
-        int slotIndex;
-        if (hand == InteractionHand.MAIN_HAND) {
-            slotIndex = minecraft.player.getInventory().selected;
-        } else {
-            if (IS_DOUBLEHOTBAR_LOADED) slotIndex = 18; else slotIndex = 9;
-        }
-
-        ((InGameHudAnimationHandler) minecraft.gui).immersive_hotbar$triggerSlotAnimation(slotIndex);
+        int slotIndex = HotbarSlots.forHand(minecraft.player, hand);
+        HotbarAnimationController.getInstance().triggerUse(slotIndex);
     }
 }

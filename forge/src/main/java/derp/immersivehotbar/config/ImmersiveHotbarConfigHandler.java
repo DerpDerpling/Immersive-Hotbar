@@ -5,8 +5,8 @@ package derp.immersivehotbar.config;
 import com.google.gson.GsonBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.loading.FMLPaths;
 
 public class ImmersiveHotbarConfigHandler {
     public static final ConfigClassHandler<ImmersiveHotbarConfig> HANDLER = ConfigClassHandler.createBuilder(ImmersiveHotbarConfig.class)
