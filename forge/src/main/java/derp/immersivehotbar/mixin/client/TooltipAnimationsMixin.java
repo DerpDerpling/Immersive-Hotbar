@@ -72,7 +72,7 @@ public class TooltipAnimationsMixin {
             immersiveHotbar$spoofed = true;
         }
     }
-    @WrapOperation(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)I"), remap = false)
+    @WrapOperation(method = "renderSelectedItemName(Lnet/minecraft/client/gui/GuiGraphics;I)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/network/chat/Component;III)I", remap = true), remap = false)
     private int immersiveHotbar$animateTooltipDraw(GuiGraphics graphics, Font font, Component text, int x, int y, int color, Operation<Integer> original) {
         if (!immersiveToolTip) return original.call(graphics, font, text, x, y, color);
         int width = font.width(text);
