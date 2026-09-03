@@ -21,8 +21,7 @@ public abstract class ConsumableComponentMixin {
     private void immersiveHotbar$onConsumptionEffect(RandomSource randomSource, LivingEntity livingEntity, ItemStack stack, int i, CallbackInfo ci) {
         if (!foodAnimates) return;
 
-        LivingEntity entity = (LivingEntity) (Object) this;
-        if (!(entity instanceof LocalPlayer player) || stack.isEmpty()) return;
+        if (!(livingEntity instanceof LocalPlayer player) || stack.isEmpty()) return;
 
         ItemUseAnimation action = stack.getUseAnimation();
         if (action != ItemUseAnimation.EAT && action != ItemUseAnimation.DRINK) return;
