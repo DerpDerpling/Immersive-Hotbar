@@ -204,5 +204,31 @@
   "immersivehotbar.group.background_style.desc": "Style your hotbar background and selection highlight.",
 
   "immersivehotbar.group.bouncy_animation": "Bouncy Animation",
-  "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale."
+  "immersivehotbar.group.bouncy_animation.desc": "Customize how bouncy effects behave when items scale.",
+  "immersivehotbar.option.xp_text_pulse_scale": "XP Text Pulse Scale",
+  "immersivehotbar.option.xp_text_pulse_scale.desc": "Controls how large the XP level text grows during its pulse animation.",
+
+  "immersivehotbar.option.xp_text_pulse_speed": "XP Text Pulse Speed",
+  "immersivehotbar.option.xp_text_pulse_speed.desc": "Controls how quickly the XP level text grows during its pulse animation.",
+
+  "immersivehotbar.option.xp_text_pulse_return_speed": "XP Text Pulse Return Speed",
+  "immersivehotbar.option.xp_text_pulse_return_speed.desc": "Controls how quickly the XP level text returns to its normal size after pulsing.",
+
+  "immersivehotbar.option.xp_glow_clamp_tail": "Keep Glow Tail Within Bar",
+  "immersivehotbar.option.xp_glow_clamp_tail.desc": "Prevents the XP glow tail from extending past the left edge of the XP bar.",
+
+  "immersivehotbar.option.xp_levelup_particles_amount": "Level-Up Particle Amount",
+  "immersivehotbar.option.xp_levelup_particles_amount.desc": "Controls how many particles are spawned during the XP level-up burst.",
+
+  "immersivehotbar.option.xp_levelup_particles_size": "Level-Up Particle Size",
+  "immersivehotbar.option.xp_levelup_particles_size.desc": "Controls the size of particles in the XP level-up burst.",
+
+  "immersivehotbar.option.xp_bar_pulse_speed": "XP Bar Pulse Speed",
+  "immersivehotbar.option.xp_bar_pulse_speed.desc": "Controls how quickly the XP bar pulse fades away.",
+
+  "immersivehotbar.option.xp_bar_pulse_size": "XP Bar Pulse Size",
+  "immersivehotbar.option.xp_bar_pulse_size.desc": "Controls how far the XP bar pulse expands outward.",
+
+  "immersivehotbar.option.xp_bar_pulse_lines": "XP Bar Pulse Lines",
+  "immersivehotbar.option.xp_bar_pulse_lines.desc": "Controls how many outline layers are used in the XP bar pulse."
 }

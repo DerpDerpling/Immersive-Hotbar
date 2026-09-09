@@ -90,7 +90,7 @@ public final class XPBarPreview implements ImageRenderer {
         }
 
         if (state.barPulse() > 0.0f) {
-            state.barPulse(Math.max(0.0f, state.barPulse() - dt * 0.08f * 20.0f));
+            state.barPulse(Math.max(0.0f, state.barPulse() - dt * xpBarPulseSpeed * 20.0f));
         }
 
         XPAnimationController.updateGlow(state, gaining, leveledUp, dt);

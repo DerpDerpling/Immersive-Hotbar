@@ -1,10 +1,9 @@
 package derp.immersivehotbar.animation.xp;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.util.Mth;
 
 import java.awt.*;
 
@@ -37,8 +36,7 @@ public final class XPAnimationRenderer {
 
         graphics.pose().pushPose();
 
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
+
 
         float t = state.frontGlow();
 
@@ -60,13 +58,18 @@ public final class XPAnimationRenderer {
 
             int x0 = frontX - (int) (tail * k1);
             int x1 = frontX - (int) (tail * k0);
+
+            if (xpGlowClampTail) {
+                x0 = Math.max(x0, x);
+                x1 = Math.max(x1, x);
+            }
+
+            if (x1 <= x0) continue;
             int alpha = (int) (t * 70.0f * (1.0f - k0)) << 24;
 
             graphics.fill(x0, y - 1, x1, y + barHeight + 1, alpha | glowRgb);
         }
 
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        RenderSystem.disableBlend();
 
         graphics.pose().popPose();
     }
@@ -105,22 +108,27 @@ public final class XPAnimationRenderer {
         float pulse = state.barPulse();
         float progress = 1.0f - pulse;
 
-        int expand = 1 + Math.round(progress * 8.0f);
+        int expand = 1 + Math.round(progress * xpBarPulseSize);
         int rgb = rgb(xpBarPulseColor);
 
-        int alphaOuter = (int) (pulse * 45.0f) << 24;
-        int alphaMiddle = (int) (pulse * 70.0f) << 24;
-        int alphaInner = (int) (pulse * 100.0f) << 24;
+        int lines = Math.max(1, xpBarPulseLines);
 
-        RenderSystem.enableBlend();
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE);
+        for (int i = 0; i < lines; i++) {
+            float t = lines == 1 ? 0.0f : (float) i / (lines - 1);
 
-        renderOutline(graphics, x - expand, y - expand, x + 182 + expand, y + 5 + expand, alphaOuter | rgb);
-        renderOutline(graphics, x - expand / 2 - 1, y - expand / 2 - 1, x + 183 + expand / 2, y + 6 + expand / 2, alphaMiddle | rgb);
-        renderOutline(graphics, x - 1, y - 1, x + 183, y + 6, alphaInner | rgb);
+            int lineExpand = Math.round(expand * (1.0f - t));
+            int alpha = (int) (pulse * Mth.lerp(t, 45.0f, 100.0f)) << 24;
 
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
-        RenderSystem.disableBlend();
+            renderOutline(
+                    graphics,
+                    x - lineExpand,
+                    y - lineExpand,
+                    x + 183 + lineExpand,
+                    y + 6 + lineExpand,
+                    alpha | rgb
+            );
+        }
+
     }
 
     private static void renderOutline(GuiGraphics graphics, int left, int top, int right, int bottom, int color) {

@@ -166,6 +166,32 @@ public class ImmersiveHotbarConfig {
 
     @SerialEntry
     public static Color xpBarPulseColor = new Color(255, 255, 85, 255);
+    @SerialEntry
+    public static boolean xpGlowClampTail = true;
+
+    @SerialEntry
+    public static float xpTextPulseScale = 2.0f;
+
+    @SerialEntry
+    public static float xpTextPulseSpeed = 1.5f;
+
+    @SerialEntry
+    public static float xpTextPulseReturnSpeed = 0.1f;
+
+    @SerialEntry
+    public static int xpLevelUpParticleAmount = 25;
+
+    @SerialEntry
+    public static float xpLevelUpParticleSize = 2.5f;
+
+    @SerialEntry
+    public static float xpBarPulseSpeed = 0.08f;
+
+    @SerialEntry
+    public static float xpBarPulseSize = 8.0f;
+
+    @SerialEntry
+    public static int xpBarPulseLines = 3;
 
 
 

@@ -1,6 +1,6 @@
 package derp.immersivehotbar.animation.xp;
 
-import com.mojang.blaze3d.systems.RenderSystem;
+
 import derp.immersivehotbar.util.UIParticle;
 import net.minecraft.client.gui.GuiGraphics;
 
@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static derp.immersivehotbar.config.ImmersiveHotbarConfig.xpLevelUpParticleColor;
+import static derp.immersivehotbar.config.ImmersiveHotbarConfig.*;
 
 public final class XPParticleController {
     private final List<UIParticle> particles = new ArrayList<>();
 
     public void spawn(int x, int y) {
-        for (int i = 0; i < 25; i++) {
+        for (int i = 0; i < xpLevelUpParticleAmount; i++) {
             UIParticle particle = new UIParticle(x, y);
 
             float variance = 0.10f;
@@ -38,7 +38,6 @@ public final class XPParticleController {
     public void render(GuiGraphics graphics) {
         if (particles.isEmpty()) return;
 
-        RenderSystem.enableBlend();
 
         Color base = xpLevelUpParticleColor;
 
@@ -51,13 +50,11 @@ public final class XPParticleController {
             graphics.pose().pushPose();
             graphics.pose().translate(particle.x, particle.y, 0.0f);
 
-            float size = 2.5f;
+            float size = xpLevelUpParticleSize;
             graphics.fill((int) -size, (int) -size, (int) size, (int) size, color);
 
             graphics.pose().popPose();
         }
-
-        RenderSystem.disableBlend();
     }
 
     public void clear() {

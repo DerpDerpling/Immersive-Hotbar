@@ -16,6 +16,11 @@ public final class XPAnimationController {
     public XPParticleController particles() {
         return particles;
     }
+    private static final XPAnimationController HUD = new XPAnimationController();
+
+    public static XPAnimationController hud() {
+        return HUD;
+    }
 
     public void reset() {
         state.reset();
@@ -80,7 +85,7 @@ public final class XPAnimationController {
         if (currentLevel != state.lastLevel()) {
             if (xpTextPulseEnabled) {
                 state.pulseScale(1.08f);
-                state.pulseTargetScale(2.0f);
+                state.pulseTargetScale(xpTextPulseScale);
             } else {
                 state.pulseScale(1.0f);
                 state.pulseTargetScale(1.0f);
@@ -119,7 +124,7 @@ public final class XPAnimationController {
             state.frontGlow(0.0f);
         }
         if (state.barPulse() > 0.0f) {
-            state.barPulse(Math.max(0.0f, state.barPulse() - dt * 0.08f));
+            state.barPulse(Math.max(0.0f, state.barPulse() - dt * xpBarPulseSpeed));
         }
 
         state.lastRawProgress(targetXp);
@@ -136,14 +141,14 @@ public final class XPAnimationController {
         float target = state.pulseTargetScale();
 
         if (target > scale) {
-            scale += (target - scale) * Math.min(dt * 1.5f, 1.0f);
+            scale += (target - scale) * Math.min(dt * xpTextPulseSpeed, 1.0f);
 
             if (Math.abs(target - scale) < 0.02f) {
                 scale = target;
                 target = 1.0f;
             }
         } else if (scale > 1.0f) {
-            scale -= dt * 0.1f;
+            scale -= dt * xpTextPulseReturnSpeed;
             if (scale < 1.0f) scale = 1.0f;
         }
 
@@ -185,7 +190,7 @@ public final class XPAnimationController {
         if (!xpTextPulseEnabled) return;
 
         state.pulseScale(1.08f);
-        state.pulseTargetScale(2.0f);
+        state.pulseTargetScale(xpTextPulseScale);
     }
 
     public static void updatePulse(XPAnimationState state, float deltaSeconds) {
@@ -199,14 +204,14 @@ public final class XPAnimationController {
         float target = state.pulseTargetScale();
 
         if (target > scale) {
-            scale += (target - scale) * Math.min(deltaSeconds * 1.5f * 20.0f, 1.0f);
+            scale += (target - scale) * Math.min(deltaSeconds * xpTextPulseSpeed * 20.0f, 1.0f);
 
             if (Math.abs(target - scale) < 0.02f) {
                 scale = target;
                 target = 1.0f;
             }
         } else if (scale > 1.0f) {
-            scale -= deltaSeconds * 0.1f * 20.0f;
+            scale -= deltaSeconds * xpTextPulseReturnSpeed * 20.0f;
             if (scale < 1.0f) scale = 1.0f;
         }
 
