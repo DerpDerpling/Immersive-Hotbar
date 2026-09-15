@@ -15,7 +15,7 @@ plugins {
 
 stonecutter {
 	create(rootProject) {
-		versions "1.20.1", "1.21.1", "1.21.2", "1.21.5", "1.21.6", "1.21.9", "26.1", "26.2"
+		versions "1.20.1", "1.21.1", "1.21.2", "1.21.5", "1.21.6", "1.21.9", "26.1", "26.2", "26.3"
 		vcsVersion = "1.21.1"
 	}
 }
@@ -24,6 +24,8 @@ project(":26.1").projectDir = file("versions/26.1")
 project(":26.1").buildFileName = "build.gradle"
 project(":26.2").projectDir = file("versions/26.2")
 project(":26.2").buildFileName = "build.gradle"
+project(":26.3").projectDir = file("versions/26.3")
+project(":26.3").buildFileName = "build.gradle"
 
 include("neoforge:1.21.9")
 project(":neoforge:1.21.9").projectDir = file("neoforge/1.21.9")
