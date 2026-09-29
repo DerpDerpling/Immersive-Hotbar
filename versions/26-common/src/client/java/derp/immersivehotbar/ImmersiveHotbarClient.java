@@ -4,11 +4,15 @@ import derp.immersivehotbar.animation.hotbar.HotbarAnimationController;
 import derp.immersivehotbar.animation.hotbar.HotbarSlots;
 import derp.immersivehotbar.animation.tooltip.TooltipAnimationController;
 import derp.immersivehotbar.config.ImmersiveHotbarConfigHandler;
+import derp.immersivehotbar.config.ImmersiveHotbarConfigScreen;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.event.client.player.ClientPlayerBlockBreakEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.*;
 
 import static derp.immersivehotbar.config.ImmersiveHotbarConfig.toolAnimates;
@@ -26,6 +30,14 @@ public class ImmersiveHotbarClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		ImmersiveHotbarConfigHandler.load();
+
+		ClientCommandRegistrationCallback.EVENT.register((dispatcher, _) -> dispatcher.register(ClientCommands.literal("ihconfig").executes(_ -> {
+            Minecraft client = Minecraft.getInstance();
+
+            client.execute(() -> client.gui.setScreen(ImmersiveHotbarConfigScreen.create(null)));
+
+            return 1;
+        })));
 
 		ClientPlayConnectionEvents.DISCONNECT.register((client, world) -> HotbarAnimationController.getInstance().clearTrackedStacks());
 
