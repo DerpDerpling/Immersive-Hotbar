@@ -10,6 +10,7 @@
     "client.AttackEntityMixin",
     "client.ItemAnimationsMixin",
     "client.ItemUseAnimationMixin",
+    "client.OverlayMessageAnimationsMixin",
     "client.TooltipAnimationsMixin",
     "client.XPBarMixin",
     "client.XPBarTextMixin"

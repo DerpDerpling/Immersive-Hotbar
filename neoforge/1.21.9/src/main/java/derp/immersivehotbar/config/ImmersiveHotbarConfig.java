@@ -58,6 +58,27 @@ public class ImmersiveHotbarConfig {
     public static int tooltipYOffset = 52;
 
     @SerialEntry
+    public static boolean tooltipAnimateOnItemChange = true;
+
+    @SerialEntry
+    public static boolean tooltipAnimateOnEmptySlot = true;
+
+    @SerialEntry
+    public static float tooltipPopScale = 1.2f;
+
+    @SerialEntry
+    public static float tooltipAnimationSpeed = 8.0f;
+
+    @SerialEntry
+    public static float tooltipShrinkSpeed = 10.0f;
+
+    @SerialEntry
+    public static float tooltipMinimumFadeScale = 0.0f;
+
+    @SerialEntry
+    public static boolean animateOverlayMessages = true;
+
+    @SerialEntry
     public static boolean scaleTooltipOffset = true;
 
     @SerialEntry
@@ -117,7 +138,7 @@ public class ImmersiveHotbarConfig {
     public static Color xpGlowColor = new Color(255, 255, 85, 255);
 
     @SerialEntry
-    public static float xpGlowFadeSpeed = 0.12f;
+    public static float xpGlowFadeSpeed = 0.04f;
 
     @SerialEntry
     public static float xpGlowBoostOnGain = 0.35f;
@@ -135,8 +156,42 @@ public class ImmersiveHotbarConfig {
     public static Color xpLevelUpParticleColor = new Color(255, 255, 85, 255);
 
     @SerialEntry
-    public static int xpLevelUpParticleLevels = 5; 
+    public static int xpLevelUpParticleLevels = 5;
 
+    @SerialEntry
+    public static boolean xpBarPulseEnabled = true;
+
+    @SerialEntry
+    public static int xpBarPulseLevels = 1;
+
+    @SerialEntry
+    public static Color xpBarPulseColor = new Color(255, 255, 85, 255);
+    @SerialEntry
+    public static boolean xpGlowClampTail = true;
+
+    @SerialEntry
+    public static float xpTextPulseScale = 2.0f;
+
+    @SerialEntry
+    public static float xpTextPulseSpeed = 1.5f;
+
+    @SerialEntry
+    public static float xpTextPulseReturnSpeed = 0.1f;
+
+    @SerialEntry
+    public static int xpLevelUpParticleAmount = 25;
+
+    @SerialEntry
+    public static float xpLevelUpParticleSize = 2.5f;
+
+    @SerialEntry
+    public static float xpBarPulseSpeed = 0.08f;
+
+    @SerialEntry
+    public static float xpBarPulseSize = 8.0f;
+
+    @SerialEntry
+    public static int xpBarPulseLines = 3;
 
 
 
